@@ -4,11 +4,7 @@ import { UserRepository } from '../users/user.repository';
 import { config } from '../../config';
 import * as Event from '../events';
 import { User } from '../users/user.entity';
-import {
-  UpdatePasswordEventDto,
-  DeleteUserEventDto,
-  UpdateUserAdditionalInfoPublishDto,
-} from '../users/dto';
+import { UpdatePasswordEventDto, DeleteUserEventDto, UpdateUserAdditionalInfoPublishDto } from '../users/dto';
 
 interface IReceiveEvent {
   type: Event.UserEvent;
@@ -37,46 +33,38 @@ export class ChatEventSubscribers {
    */
   subscribeData(queueName: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      amqp.connect(
-        `${config.EVENT_STORE_SETTINGS.protocol}://${config.EVENT_STORE_SETTINGS.hostname}:${config.EVENT_STORE_SETTINGS.tcpPort}/?heartbeat=60`,
-        (connectErr: Error, connection: amqp.Connection) => {
-          if (connectErr) return reject(connectErr.message);
+      amqp.connect(`${config.EVENT_STORE_SETTINGS.protocol}://${config.EVENT_STORE_SETTINGS.hostname}:${config.EVENT_STORE_SETTINGS.tcpPort}/?heartbeat=60`, (connectErr: Error, connection: amqp.Connection) => {
+        if (connectErr) return reject(connectErr.message);
 
-          connection.createChannel(
-            (createChErr: Error, channel: amqp.Channel) => {
-              if (createChErr) return reject(createChErr.message);
-              channel.assertExchange(this.defaultExchangeName, 'fanout', {
-                durable: false,
-              });
+        connection.createChannel((createChErr: Error, channel: amqp.Channel) => {
+          if (createChErr) return reject(createChErr.message);
+          channel.assertExchange(this.defaultExchangeName, 'fanout', {
+            durable: false,
+          });
 
-              channel.assertQueue(
-                queueName,
-                {
-                  exclusive: true,
+          channel.assertQueue(
+            queueName,
+            {
+              exclusive: true,
+            },
+            (assertErr: Error, q: amqp.Replies.AssertQueue) => {
+              if (assertErr) return reject(assertErr.message);
+              channel.bindQueue(q.queue, this.defaultExchangeName, '');
+              channel.consume(
+                q.queue,
+                (msg: amqp.Message) => {
+                  this.logger.log(msg.content.toString(), 'AMQPHandler-SubscribeData');
+                  if (msg.content) {
+                    this.execute(msg.content.toString());
+                    resolve(true);
+                  }
                 },
-                (assertErr: Error, q: amqp.Replies.AssertQueue) => {
-                  if (assertErr) return reject(assertErr.message);
-                  channel.bindQueue(q.queue, this.defaultExchangeName, '');
-                  channel.consume(
-                    q.queue,
-                    (msg: amqp.Message) => {
-                      this.logger.log(
-                        msg.content.toString(),
-                        'AMQPHandler-SubscribeData',
-                      );
-                      if (msg.content) {
-                        this.execute(msg.content.toString());
-                        resolve(true);
-                      }
-                    },
-                    { noAck: true },
-                  );
-                },
+                { noAck: true },
               );
             },
           );
-        },
-      );
+        });
+      });
     });
   }
 
@@ -91,17 +79,11 @@ export class ChatEventSubscribers {
       case Event.UserEvent.CREATEUSER:
         return this.userRepository.createUser(jsonEvent.data as User);
       case Event.UserEvent.UPDATEUSERPASSWORD:
-        return this.userRepository.updateUserPassword(
-          jsonEvent.data as UpdatePasswordEventDto,
-        );
+        return this.userRepository.updateUserPassword(jsonEvent.data as UpdatePasswordEventDto);
       case Event.UserEvent.UPDATEUSERADDITIONALINFO:
-        return this.userRepository.updateUserAdditionalInfo(
-          jsonEvent.data as UpdateUserAdditionalInfoPublishDto,
-        );
+        return this.userRepository.updateUserAdditionalInfo(jsonEvent.data as UpdateUserAdditionalInfoPublishDto);
       case Event.UserEvent.SOFTDELETEUSER:
-        return this.userRepository.softDeleteUser(
-          jsonEvent.data as DeleteUserEventDto,
-        );
+        return this.userRepository.softDeleteUser(jsonEvent.data as DeleteUserEventDto);
     }
   }
 }

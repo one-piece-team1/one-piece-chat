@@ -1,19 +1,4 @@
-import {
-  Entity,
-  BaseEntity,
-  Column,
-  Unique,
-  Index,
-  BeforeInsert,
-  BeforeUpdate,
-  CreateDateColumn,
-  UpdateDateColumn,
-  OneToMany,
-  JoinColumn,
-  ManyToMany,
-  AfterLoad,
-  PrimaryColumn,
-} from 'typeorm';
+import { Entity, BaseEntity, Column, Unique, Index, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn, OneToMany, JoinColumn, ManyToMany, AfterLoad, PrimaryColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import * as EUser from '../enums';
 
@@ -95,21 +80,21 @@ export class User extends BaseEntity {
    */
   @ManyToMany(
     () => User,
-    user => user.following,
+    (user) => user.following,
   )
   @JoinColumn()
   followers: User[];
 
   @ManyToMany(
     () => User,
-    user => user.followers,
+    (user) => user.followers,
   )
   @JoinColumn()
   following: User[];
 
   @OneToMany(
     () => User,
-    user => user.blockLists,
+    (user) => user.blockLists,
   )
   @JoinColumn()
   blockLists: User[];

@@ -1,22 +1,8 @@
-import {
-  InternalServerErrorException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import {
-  Repository,
-  EntityRepository,
-  getManager,
-  EntityManager,
-  Not,
-} from 'typeorm';
+import { InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
+import { Repository, EntityRepository, getManager, EntityManager, Not } from 'typeorm';
 import { User } from './user.entity';
 import * as IUser from '../interfaces';
-import {
-  DeleteUserEventDto,
-  UpdatePasswordEventDto,
-  UpdateUserAdditionalInfoPublishDto,
-} from './dto';
+import { DeleteUserEventDto, UpdatePasswordEventDto, UpdateUserAdditionalInfoPublishDto } from './dto';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -31,9 +17,7 @@ export class UserRepository extends Repository<User> {
    * @returns {void}
    */
   public createUser(userReq: User): void {
-    this.repoManager
-      .save(User, userReq)
-      .catch(err => this.logger.log(err.message, 'CreatUser'));
+    this.repoManager.save(User, userReq).catch((err) => this.logger.log(err.message, 'CreatUser'));
   }
 
   /**
@@ -73,14 +57,12 @@ export class UserRepository extends Repository<User> {
    * @param {UpdatePasswordEventDto} updatePasswordEventDto
    * @returns {void}
    */
-  public updateUserPassword(
-    updatePasswordEventDto: UpdatePasswordEventDto,
-  ): void {
+  public updateUserPassword(updatePasswordEventDto: UpdatePasswordEventDto): void {
     const { id, salt, password } = updatePasswordEventDto;
     this.repoManager
       .getRepository(User)
       .update(id, { salt, password })
-      .catch(err => this.logger.log(err.message, 'UpdateUserPassword'));
+      .catch((err) => this.logger.log(err.message, 'UpdateUserPassword'));
   }
 
   /**
@@ -90,20 +72,12 @@ export class UserRepository extends Repository<User> {
    * @param {UpdateUserAdditionalInfoPublishDto} updateUserAdditionalInfoPublishDto
    * @returns {void}
    */
-  public updateUserAdditionalInfo(
-    updateUserAdditionalInfoPublishDto: UpdateUserAdditionalInfoPublishDto,
-  ) {
-    const {
-      id,
-      gender,
-      age,
-      desc,
-      profileImage,
-    } = updateUserAdditionalInfoPublishDto;
+  public updateUserAdditionalInfo(updateUserAdditionalInfoPublishDto: UpdateUserAdditionalInfoPublishDto) {
+    const { id, gender, age, desc, profileImage } = updateUserAdditionalInfoPublishDto;
     this.repoManager
       .getRepository(User)
       .update(id, { gender, age, desc, profileImage })
-      .catch(err => this.logger.log(err.message, 'UpdateUserAdditionalInfo'));
+      .catch((err) => this.logger.log(err.message, 'UpdateUserAdditionalInfo'));
   }
 
   /**
@@ -118,6 +92,6 @@ export class UserRepository extends Repository<User> {
     this.repoManager
       .getRepository(User)
       .update(id, { status: false })
-      .catch(err => this.logger.log(err.message, 'SoftDeleteUser'));
+      .catch((err) => this.logger.log(err.message, 'SoftDeleteUser'));
   }
 }
