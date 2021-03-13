@@ -1,13 +1,35 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtStrategy } from '../strategy';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { UserRepository } from '../users/user.repository';
 import { ChatEventSubscribers } from '../subscribers';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { config } from '../../config';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([UserRepository])],
+  imports: [
+    PassportModule.register({
+      defaultStrategy: 'jwt',
+      property: 'user',
+      session: true,
+    }),
+    JwtModule.register({
+      secret: config.JWT.SECRET,
+      signOptions: {
+        algorithm: 'HS256',
+        expiresIn: '7d',
+        issuer: 'one-piece',
+      },
+      verifyOptions: {
+        algorithms: ['HS256'],
+      },
+    }),
+    TypeOrmModule.forFeature([UserRepository])
+  ],
   controllers: [ChatController],
-  providers: [ChatService, ChatEventSubscribers],
+  providers: [JwtStrategy, ChatService, ChatEventSubscribers],
 })
 export class ChatModule {}
