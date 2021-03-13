@@ -6,6 +6,7 @@ import { JwtStrategy } from '../strategy';
 import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { UserRepository } from '../users/user.repository';
+import { ChatRepository } from './chat.repository';
 import { ChatEventSubscribers } from '../subscribers';
 import { config } from '../../config';
 
@@ -27,7 +28,7 @@ import { config } from '../../config';
         algorithms: ['HS256'],
       },
     }),
-    TypeOrmModule.forFeature([UserRepository])
+    TypeOrmModule.forFeature([UserRepository, ChatRepository]),
   ],
   controllers: [ChatController],
   providers: [JwtStrategy, ChatService, ChatEventSubscribers],

@@ -1,5 +1,6 @@
-import { Entity, BaseEntity, Column, Unique, Index, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn, OneToMany, JoinColumn, ManyToMany, AfterLoad, PrimaryColumn } from 'typeorm';
+import { Entity, BaseEntity, Column, Unique, Index, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn, OneToMany, JoinColumn, ManyToMany, AfterLoad, PrimaryColumn, JoinTable } from 'typeorm';
 import * as bcrypt from 'bcrypt';
+import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
 import * as EUser from '../enums';
 
 @Entity()
@@ -74,6 +75,16 @@ export class User extends BaseEntity {
 
   @Column({ type: 'varchar', nullable: true })
   profileImage?: string;
+
+  /**
+   * @description Many To Many RelationShip With ChatParticipate
+   */
+  @ManyToMany(
+    () => ChatParticipate,
+    (chatParticipate) => chatParticipate.userIds,
+  )
+  @JoinTable()
+  chatParticipateIds: ChatParticipate[];
 
   /**
    * @description Following Area
