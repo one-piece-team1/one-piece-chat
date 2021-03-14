@@ -51,6 +51,27 @@ export class UserRepository extends Repository<User> {
   }
 
   /**
+   * @description Get Chat participates
+   * @public
+   * @param {string} ids
+   * @returns {Promise<User[]>}
+   */
+  public async getParticipates(ids: string[]): Promise<User[]> {
+    try {
+      const users: User[] = await this.findByIds(ids);
+      if (users.length === 0) throw new NotFoundException();
+      users.forEach((user) => {
+        delete user.password;
+        delete user.salt;
+      });
+      return users;
+    } catch (error) {
+      this.logger.error(error.message, '', 'GetParticipates');
+      throw new InternalServerErrorException(error.message);
+    }
+  }
+
+  /**
    * @description Update user password
    * @event
    * @public

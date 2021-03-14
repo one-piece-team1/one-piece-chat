@@ -34,6 +34,7 @@ export class ChatParticipate extends BaseEntity {
   @ManyToMany(
     () => User,
     (user) => user.chatParticipateIds,
+    { cascade: true },
   )
   @JoinTable()
   userIds: User[];

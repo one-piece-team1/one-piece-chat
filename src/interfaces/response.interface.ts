@@ -1,10 +1,7 @@
-export interface ResponseBase {
-  statusCode: number;
-  status: 'error' | 'success';
-  message: any;
-  [futureKey: string]: any;
-}
+type Status = 'error' | 'success';
 
-export interface SignInResponse extends ResponseBase {
-  accessToken?: string;
+export interface IResponseBase<T> {
+  status: Status;
+  statusCode: number;
+  message?: T;
 }

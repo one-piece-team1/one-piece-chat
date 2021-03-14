@@ -1,4 +1,4 @@
-import { Entity, BaseEntity, Column, Unique, Index, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn, OneToMany, JoinColumn, ManyToMany, AfterLoad, PrimaryColumn, JoinTable } from 'typeorm';
+import { Entity, BaseEntity, Column, Unique, Index, BeforeInsert, BeforeUpdate, CreateDateColumn, UpdateDateColumn, OneToMany, JoinColumn, ManyToMany, AfterLoad, PrimaryColumn } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
 import * as EUser from '../enums';
@@ -83,7 +83,6 @@ export class User extends BaseEntity {
     () => ChatParticipate,
     (chatParticipate) => chatParticipate.userIds,
   )
-  @JoinTable()
   chatParticipateIds: ChatParticipate[];
 
   /**
