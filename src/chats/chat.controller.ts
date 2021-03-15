@@ -1,12 +1,16 @@
-import { Controller, Get, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Controller, Get, SetMetadata, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { RoleGuard } from '../guards/local-guard';
 import { ChatService } from './chat.service';
+import * as EUser from '../enums';
 
-@Controller('')
+@Controller('/chats')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @Get()
-  @UsePipes(ValidationPipe)
+  @SetMetadata('roles', [EUser.EUserRole.ADMIN])
+  @UseGuards(AuthGuard(['jwt']), RoleGuard)
   getRequest(): Promise<string> {
     return this.chatService.getRequest();
   }
