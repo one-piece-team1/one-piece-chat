@@ -3,17 +3,20 @@ import { ChatRoom } from './chat-room.entity';
 import { ChatRoomRepository } from './chat-room.repository';
 import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
 import { UserRepository } from 'users/user.repository';
+import { ChatRoomProudcerService } from '../producers/chatroom.producer';
 import { CreateChatRoomDto } from './dtos';
 import { CreateChatParticiPantDto } from '../chatparticipates/dtos';
 import HTTPResponse from '../libs/response';
 import * as IShare from '../interfaces';
+import { config } from '../../config';
 
 @Injectable()
 export class ChatRoomService {
   private readonly logger: Logger = new Logger('ChatRoomService');
   private readonly httpResponse = new HTTPResponse();
+  private readonly chatKafkaTopic = config.EVENT_STORE_SETTINGS.topics.chatTopic;
 
-  constructor(private readonly chatRoomRepository: ChatRoomRepository, private readonly chatParticipateRepository: ChatParticipateRepository, private readonly userRepositoy: UserRepository) {}
+  constructor(private readonly chatRoomRepository: ChatRoomRepository, private readonly chatParticipateRepository: ChatParticipateRepository, private readonly userRepositoy: UserRepository, private readonly chatRoomProudcerService: ChatRoomProudcerService) {}
 
   /**
    * @description Create chat rooom services layer
@@ -82,6 +85,8 @@ export class ChatRoomService {
         HttpStatus.CONFLICT,
       );
     }
+
+    this.chatRoomProudcerService.produce<ChatRoom>(this.chatKafkaTopic, updatedChatRoom, updatedChatRoom.id);
 
     return this.httpResponse.StatusCreated(updatedChatRoom);
   }
