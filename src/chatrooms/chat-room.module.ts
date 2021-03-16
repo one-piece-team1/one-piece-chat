@@ -6,10 +6,11 @@ import { ChatRoomRepository } from './chat-room.repository';
 import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
 import { UserRepository } from '../users/user.repository';
 import { ChatRoomProudcerService } from '../producers/chatroom.producer';
+import { ChatRoomAggregate } from './aggregates/chat-room.aggregate';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ChatRoomRepository, ChatParticipateRepository, UserRepository])],
   controllers: [ChatRoomController],
-  providers: [ChatRoomService, ChatRoomProudcerService],
+  providers: [ChatRoomService, ChatRoomProudcerService, ChatRoomAggregate],
 })
 export class ChatRoomModule {}

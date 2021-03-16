@@ -4,10 +4,13 @@ import { ChatRoomRepository } from './chat-room.repository';
 import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
 import { UserRepository } from 'users/user.repository';
 import { ChatRoomProudcerService } from '../producers/chatroom.producer';
+import { ChatRoomAggregate } from './aggregates/chat-room.aggregate';
 import { CreateChatRoomDto } from './dtos';
 import { CreateChatParticiPantDto } from '../chatparticipates/dtos';
 import HTTPResponse from '../libs/response';
 import * as IShare from '../interfaces';
+import * as EChatRoom from './enums';
+import * as IChatRoom from './interfaces';
 import { config } from '../../config';
 
 @Injectable()
@@ -16,7 +19,7 @@ export class ChatRoomService {
   private readonly httpResponse = new HTTPResponse();
   private readonly chatKafkaTopic = config.EVENT_STORE_SETTINGS.topics.chatTopic;
 
-  constructor(private readonly chatRoomRepository: ChatRoomRepository, private readonly chatParticipateRepository: ChatParticipateRepository, private readonly userRepositoy: UserRepository, private readonly chatRoomProudcerService: ChatRoomProudcerService) {}
+  constructor(private readonly chatRoomRepository: ChatRoomRepository, private readonly chatParticipateRepository: ChatParticipateRepository, private readonly userRepositoy: UserRepository, private readonly chatRoomProudcerService: ChatRoomProudcerService, private readonly chatRoomAggregate: ChatRoomAggregate) {}
 
   /**
    * @description Create chat rooom services layer
@@ -86,7 +89,7 @@ export class ChatRoomService {
       );
     }
 
-    this.chatRoomProudcerService.produce<ChatRoom>(this.chatKafkaTopic, updatedChatRoom, updatedChatRoom.id);
+    this.chatRoomProudcerService.produce<IChatRoom.IAggregateResponse<EChatRoom.EChatRoomSocketEvent, ChatRoom>>(this.chatKafkaTopic, this.chatRoomAggregate.createChatRoom(updatedChatRoom), updatedChatRoom.id);
 
     return this.httpResponse.StatusCreated(updatedChatRoom);
   }
