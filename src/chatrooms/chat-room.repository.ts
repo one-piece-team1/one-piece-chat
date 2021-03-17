@@ -1,8 +1,9 @@
 import { InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { EntityManager, EntityRepository, getManager, Repository } from 'typeorm';
 import { ChatRoom } from './chat-room.entity';
+import { User } from '../users/user.entity';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
-import { CreateChatRoomDto } from './dtos';
+import { CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
 
 @EntityRepository(ChatRoom)
 export class ChatRoomRepository extends Repository<ChatRoom> {
@@ -52,5 +53,43 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
       throw new InternalServerErrorException(error.message);
     }
     return chatRoom;
+  }
+
+  /**
+   * @description check user rule
+   * @protected
+   * @param {string} userId
+   * @param {ChatRoom} chatRoom
+   * @returns {boolean}
+   */
+  protected checkUserRule(userId: string, chatRoom: ChatRoom): boolean {
+    let isvalidated = false;
+    chatRoom.participateId.userIds.forEach((user) => {
+      if (user.id === userId) {
+        isvalidated = true;
+      }
+    });
+    return isvalidated;
+  }
+
+  /**
+   * @description Get chatroom by id
+   * @public
+   * @param {User} user
+   * @param {GetChatRoomByIdDto} getChatRoomByIdDto
+   * @returns {Promise<ChatRoom>}
+   */
+  public async getChatRoomById(user: User, getChatRoomByIdDto: GetChatRoomByIdDto): Promise<ChatRoom> {
+    try {
+      const chatRoom = await this.findOne({
+        where: { id: getChatRoomByIdDto.id },
+        relations: ['participateId'],
+      });
+      if (!chatRoom) return null;
+      if (!this.checkUserRule(user.id, chatRoom)) return null;
+      return chatRoom;
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }

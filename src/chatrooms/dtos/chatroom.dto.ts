@@ -1,6 +1,11 @@
 import { IsIn, IsString, IsUUID } from 'class-validator';
 import * as EChatRoom from '../enums';
 
+class ChatRoomBaseDto {
+  @IsUUID()
+  id: string;
+}
+
 export class CreateChatRoomDto {
   @IsString()
   name: string;
@@ -14,3 +19,5 @@ export class CreateChatRoomDto {
   @IsUUID()
   responseUserId: string;
 }
+
+export class GetChatRoomByIdDto extends ChatRoomBaseDto {}

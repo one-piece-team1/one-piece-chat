@@ -5,7 +5,7 @@ import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.
 import { UserRepository } from 'users/user.repository';
 import { ChatRoomProudcerService } from '../producers/chatroom.producer';
 import { ChatRoomAggregate } from './aggregates/chat-room.aggregate';
-import { CreateChatRoomDto } from './dtos';
+import { CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
 import { CreateChatParticiPantDto } from '../chatparticipates/dtos';
 import HTTPResponse from '../libs/response';
 import * as IShare from '../interfaces';
@@ -92,5 +92,49 @@ export class ChatRoomService {
     this.chatRoomProudcerService.produce<IChatRoom.IAggregateResponse<EChatRoom.EChatRoomSocketEvent, ChatRoom>>(this.chatKafkaTopic, this.chatRoomAggregate.createChatRoom(updatedChatRoom), updatedChatRoom.id);
 
     return this.httpResponse.StatusCreated(updatedChatRoom);
+  }
+
+  /**
+   * @description Get chatroom by id
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {GetChatRoomByIdDto} getChatRoomByIdDto
+   * @returns {Promise<IShare.IResponseBase<ChatRoom> | HttpException>}
+   */
+  public async getChatRoomById(user: IShare.UserInfo | IShare.JwtPayload, getChatRoomByIdDto: GetChatRoomByIdDto): Promise<IShare.IResponseBase<ChatRoom> | HttpException> {
+    const chatUser = await this.userRepositoy.getUserById(user.id, false);
+    if (!chatUser) {
+      this.logger.error('Invalid credential', '', 'GetChatRoomByIdError');
+      return new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'Invalid credential',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    try {
+      const chatRoom = await this.chatRoomRepository.getChatRoomById(chatUser, getChatRoomByIdDto);
+      if (!chatRoom) {
+        this.logger.error(`Cannnot find chatroom for ${getChatRoomByIdDto.id}`, '', 'GetChatRoomByIdError');
+        return new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: `Cannnot find chatroom for ${getChatRoomByIdDto.id}`,
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return this.httpResponse.StatusOK(chatRoom);
+    } catch (error) {
+      this.logger.error(error.message, '', 'GetChatRoomByIdError');
+      return new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 }

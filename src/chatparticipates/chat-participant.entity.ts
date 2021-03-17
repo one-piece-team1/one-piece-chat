@@ -24,6 +24,7 @@ export class ChatParticipate extends BaseEntity {
   @OneToMany(
     () => Chat,
     (chat) => chat.chatParticipateId,
+    { eager: true },
   )
   @JoinColumn()
   messageIds: Chat[];
@@ -34,7 +35,7 @@ export class ChatParticipate extends BaseEntity {
   @ManyToMany(
     () => User,
     (user) => user.chatParticipateIds,
-    { cascade: true },
+    { cascade: true, eager: true },
   )
   @JoinTable()
   userIds: User[];
