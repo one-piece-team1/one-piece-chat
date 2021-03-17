@@ -92,4 +92,30 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
       throw new InternalServerErrorException(error.message);
     }
   }
+
+  public async getUserChatRooms(participateIds: string[]) {
+    try {
+      const [chatrooms, count] = await this.repoManager.findAndCount(ChatRoom, {
+        join: { alias: 'chatroom', leftJoin: { participateId: 'chatroom.participateId' } },
+        where: (db) => {
+          db.andWhere('participateId.id IN (:...id)', { id: participateIds });
+        },
+        take: 10,
+        skip: 0,
+      });
+      if (!chatrooms) return null;
+      chatrooms.forEach((chatroom) => {
+        chatroom.participateId.userIds.forEach((user) => {
+          delete user.password;
+          delete user.salt;
+        });
+      });
+      return {
+        chatrooms,
+        count,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

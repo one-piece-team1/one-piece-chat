@@ -11,6 +11,13 @@ import * as IShare from '../interfaces';
 export class ChatRoomController {
   constructor(private readonly chatRoomService: ChatRoomService) {}
 
+  @Get('/paging')
+  @SetMetadata('roles', [EUser.EUserRole.USER, EUser.EUserRole.VIP1, EUser.EUserRole.VIP2, EUser.EUserRole.ADMIN])
+  @UseGuards(AuthGuard(['jwt']), RoleGuard)
+  getUserChatRooms(@CurrentUser() user: IShare.UserInfo | IShare.JwtPayload) {
+    return this.chatRoomService.getUserChatRooms(user);
+  }
+
   @Get('/:id')
   @SetMetadata('roles', [EUser.EUserRole.USER, EUser.EUserRole.VIP1, EUser.EUserRole.VIP2, EUser.EUserRole.ADMIN])
   @UseGuards(AuthGuard(['jwt']), RoleGuard)

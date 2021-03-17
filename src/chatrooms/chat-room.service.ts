@@ -137,4 +137,42 @@ export class ChatRoomService {
       );
     }
   }
+
+  public async getUserChatRooms(user: IShare.UserInfo | IShare.JwtPayload) {
+    const chatUser = await this.userRepositoy.getUserById(user.id, false);
+    if (!chatUser) {
+      this.logger.error('Invalid credential', '', 'GetUserChatRoomsError');
+      return new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'Invalid credential',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+    const participateIds = await this.chatParticipateRepository.getChatParticipateIdsByUser(chatUser);
+    if (!participateIds) {
+      this.logger.error('No participates have been found', '', 'GetUserChatRoomsError');
+      return new HttpException(
+        {
+          status: HttpStatus.NOT_FOUND,
+          error: 'No participates have been found',
+        },
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    try {
+      return await this.chatRoomRepository.getUserChatRooms(participateIds);
+    } catch (error) {
+      console.error('error: ', error);
+      this.logger.error(error.message, '', 'GetUserChatRoomsError');
+      return new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: error.message,
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

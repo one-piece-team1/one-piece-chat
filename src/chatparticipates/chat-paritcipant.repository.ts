@@ -1,5 +1,6 @@
 import { InternalServerErrorException, Logger } from '@nestjs/common';
 import { EntityManager, EntityRepository, getManager, Repository } from 'typeorm';
+import { User } from '../users/user.entity';
 import { ChatParticipate } from './chat-participant.entity';
 import { CreateChatParticiPantDto } from './dtos';
 
@@ -26,5 +27,20 @@ export class ChatParticipateRepository extends Repository<ChatParticipate> {
       throw new InternalServerErrorException(error.message);
     }
     return chatParticipate;
+  }
+
+  public async getChatParticipateIdsByUser(user: User): Promise<string[]> {
+    try {
+      const participates: ChatParticipate[] = await this.createQueryBuilder('chatparticipate')
+        .leftJoinAndSelect('chatparticipate.userIds', 'users')
+        .andWhere('users.id = :id', { id: user.id })
+        .select('chatparticipate.id')
+        .getMany();
+      if (participates.length === 0) return null;
+      return participates.map((participate) => participate.id);
+    } catch (error) {
+      console.error(error);
+      throw new InternalServerErrorException(error.message);
+    }
   }
 }
