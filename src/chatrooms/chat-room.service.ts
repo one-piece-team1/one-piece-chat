@@ -139,7 +139,14 @@ export class ChatRoomService {
     }
   }
 
-  public async getUserChatRooms(user: IShare.UserInfo | IShare.JwtPayload, chatSearchDto: ChatSearchDto) {
+  /**
+   * @description Get user chat rooms with paging
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {ChatSearchDto} chatSearchDto
+   * @returns {Promise<IShare.IResponseBase<IShare.IChatRoomPagingResponseBase<ChatRoom[]>> | HttpException>}
+   */
+  public async getUserChatRooms(user: IShare.UserInfo | IShare.JwtPayload, chatSearchDto: ChatSearchDto): Promise<IShare.IResponseBase<IShare.IChatRoomPagingResponseBase<ChatRoom[]>> | HttpException> {
     if (!chatSearchDto.keyword) chatSearchDto.keyword = '';
     if (!chatSearchDto.sort) chatSearchDto.sort = 'DESC';
     const isAdmin = user.role === EShare.EUserRole.ADMIN;
@@ -166,7 +173,24 @@ export class ChatRoomService {
       );
     }
     try {
-      return await this.chatRoomRepository.getUserChatRooms(participateIds, chatSearchDto);
+      const { chatrooms, take, skip, count } = await this.chatRoomRepository.getUserChatRooms(participateIds, chatSearchDto);
+      if (!chatrooms) {
+        this.logger.error('No chatroom has been found', '', 'GetUserChatRoomsError');
+        return new HttpException(
+          {
+            status: HttpStatus.NOT_FOUND,
+            error: 'No chatroom has been found',
+          },
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      return this.httpResponse.StatusOK<IShare.IChatRoomPagingResponseBase<ChatRoom[]>>({
+        chatrooms,
+        take,
+        skip,
+        count,
+      });
     } catch (error) {
       console.error('error: ', error);
       this.logger.error(error.message, '', 'GetUserChatRoomsError');

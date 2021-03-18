@@ -93,7 +93,14 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
     }
   }
 
-  public async getUserChatRooms(participateIds: string[], chatSearchDto: ChatSearchDto) {
+  /**
+   * @description Get user chatrooms by paging
+   * @public
+   * @param {string[]} participateIds
+   * @param {ChatSearchDto} chatSearchDto
+   * @returns {Promise<{ chatrooms: ChatRoom[], take: number; skip: number; count: number; }>}
+   */
+  public async getUserChatRooms(participateIds: string[], chatSearchDto: ChatSearchDto): Promise<{ chatrooms: ChatRoom[]; take: number; skip: number; count: number }> {
     const take = chatSearchDto.take ? Number(chatSearchDto.take) : 10;
     const skip = chatSearchDto.skip ? Number(chatSearchDto.skip) : 0;
     try {
