@@ -109,12 +109,6 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
         skip,
       });
       if (!chatrooms) return null;
-      chatrooms.forEach((chatroom) => {
-        chatroom.chatParticipate.users.forEach((user) => {
-          delete user.password;
-          delete user.salt;
-        });
-      });
       return {
         chatrooms,
         take,
