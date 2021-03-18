@@ -1,5 +1,6 @@
 import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
+import * as EChat from './enums';
 
 @Entity()
 export class Chat extends BaseEntity {
@@ -8,6 +9,22 @@ export class Chat extends BaseEntity {
 
   @Column({ type: 'varchar', nullable: false })
   message: string;
+
+  @Column({
+    type: 'enum',
+    enum: EChat.EChatSendStatus,
+    default: EChat.EChatSendStatus.SENDING,
+    nullable: false,
+  })
+  sendStatus: EChat.EChatSendStatus;
+
+  @Column({
+    type: 'enum',
+    enum: EChat.EChatStatus,
+    default: EChat.EChatStatus.UNREAD,
+    nullable: false,
+  })
+  readStatus: EChat.EChatStatus;
 
   @ManyToOne(
     () => ChatParticipate,
