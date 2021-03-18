@@ -45,7 +45,7 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
         id,
       },
       lock: {
-        mode: 'pessimistic_write'
+        mode: 'pessimistic_write',
       },
     });
     if (!chatRoom) throw new NotFoundException('Cannot find Chatroom');
@@ -118,7 +118,7 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
           updatedAt: chatSearchDto.sort,
         },
         lock: {
-          mode: 'pessimistic_write'
+          mode: 'pessimistic_write',
         },
         take,
         skip,
