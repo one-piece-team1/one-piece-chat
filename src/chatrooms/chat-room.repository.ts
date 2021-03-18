@@ -34,14 +34,18 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
   /**
    * @description Update chatroom participate
    * @public
+   * @lock
    * @param {string} id
    * @param {ChatParticipate} chatParticipate
    * @returns {Promise<ChatRoom>}
    */
   public async updateChatRoomParticipateRelations(id: string, chatParticipate: ChatParticipate): Promise<ChatRoom> {
-    const chatRoom = await this.repoManager.findOne(ChatRoom, {
+    const chatRoom = await this.findOne({
       where: {
         id,
+      },
+      lock: {
+        mode: 'pessimistic_write'
       },
     });
     if (!chatRoom) throw new NotFoundException('Cannot find Chatroom');
@@ -96,6 +100,7 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
   /**
    * @description Get user chatrooms by paging
    * @public
+   * @lock
    * @param {string[]} participateIds
    * @param {ChatSearchDto} chatSearchDto
    * @returns {Promise<{ chatrooms: ChatRoom[], take: number; skip: number; count: number; }>}
@@ -104,13 +109,16 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
     const take = chatSearchDto.take ? Number(chatSearchDto.take) : 10;
     const skip = chatSearchDto.skip ? Number(chatSearchDto.skip) : 0;
     try {
-      const [chatrooms, count] = await this.repoManager.findAndCount(ChatRoom, {
+      const [chatrooms, count] = await this.findAndCount({
         join: { alias: 'chatroom', leftJoin: { chatParticipate: 'chatroom.chatParticipate' } },
         where: (db) => {
           db.andWhere('chatParticipate.id IN (:...id)', { id: participateIds });
         },
         order: {
           updatedAt: chatSearchDto.sort,
+        },
+        lock: {
+          mode: 'pessimistic_write'
         },
         take,
         skip,

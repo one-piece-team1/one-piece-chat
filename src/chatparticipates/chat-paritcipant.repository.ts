@@ -29,9 +29,17 @@ export class ChatParticipateRepository extends Repository<ChatParticipate> {
     return chatParticipate;
   }
 
+  /**
+   * @description Get list user ids by participate relations
+   * @public
+   * @lock
+   * @param {User} user
+   * @returns {Promise<string[]>}
+   */
   public async getChatParticipateIdsByUser(user: User): Promise<string[]> {
     try {
       const participates: ChatParticipate[] = await this.createQueryBuilder('chatparticipate')
+        .setLock('pessimistic_write')
         .leftJoinAndSelect('chatparticipate.users', 'users')
         .andWhere('users.id = :id', { id: user.id })
         .select('chatparticipate.id')
@@ -39,7 +47,7 @@ export class ChatParticipateRepository extends Repository<ChatParticipate> {
       if (participates.length === 0) return null;
       return participates.map((participate) => participate.id);
     } catch (error) {
-      console.error(error);
+      this.logger.error(error.message, '', 'GetChatParticipateIdsByUserError');
       throw new InternalServerErrorException(error.message);
     }
   }
