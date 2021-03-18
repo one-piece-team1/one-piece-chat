@@ -81,9 +81,9 @@ export class User extends BaseEntity {
    */
   @ManyToMany(
     () => ChatParticipate,
-    (chatParticipate) => chatParticipate.userIds,
+    (chatParticipate) => chatParticipate.users,
   )
-  chatParticipateIds: ChatParticipate[];
+  chatParticipates: ChatParticipate[];
 
   /**
    * @description Following Area

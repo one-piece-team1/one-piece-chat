@@ -11,10 +11,10 @@ export class Chat extends BaseEntity {
 
   @ManyToOne(
     () => ChatParticipate,
-    (chatParticipate) => chatParticipate.messageIds,
+    (chatParticipate) => chatParticipate.chats,
   )
   @JoinColumn()
-  chatParticipateId: ChatParticipate;
+  chatParticipate: ChatParticipate;
 
   /**
    * @description Time area

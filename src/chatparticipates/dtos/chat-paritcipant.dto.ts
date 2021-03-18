@@ -4,8 +4,8 @@ import { User } from '../../users/user.entity';
 
 export class CreateChatParticiPantDto {
   @IsInstance(ChatRoom)
-  chatRoomId: ChatRoom;
+  chatRoom: ChatRoom;
 
   @IsArray()
-  userIds: User[];
+  users: User[];
 }

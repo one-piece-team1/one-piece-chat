@@ -16,10 +16,10 @@ export class ChatParticipateRepository extends Repository<ChatParticipate> {
    * @returns {Promise<ChatParticipate>}
    */
   public async createChatParticipate(createChatParticiPantDto: CreateChatParticiPantDto): Promise<ChatParticipate> {
-    const { chatRoomId, userIds } = createChatParticiPantDto;
+    const { chatRoom, users } = createChatParticiPantDto;
     const chatParticipate = new ChatParticipate();
-    chatParticipate.chatRoomId = chatRoomId;
-    chatParticipate.userIds = userIds;
+    chatParticipate.chatRoom = chatRoom;
+    chatParticipate.users = users;
     try {
       await chatParticipate.save();
     } catch (error) {
@@ -32,7 +32,7 @@ export class ChatParticipateRepository extends Repository<ChatParticipate> {
   public async getChatParticipateIdsByUser(user: User): Promise<string[]> {
     try {
       const participates: ChatParticipate[] = await this.createQueryBuilder('chatparticipate')
-        .leftJoinAndSelect('chatparticipate.userIds', 'users')
+        .leftJoinAndSelect('chatparticipate.users', 'users')
         .andWhere('users.id = :id', { id: user.id })
         .select('chatparticipate.id')
         .getMany();

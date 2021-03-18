@@ -3,7 +3,7 @@ import { EntityManager, EntityRepository, getManager, Repository } from 'typeorm
 import { ChatRoom } from './chat-room.entity';
 import { User } from '../users/user.entity';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
-import { CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
+import { ChatSearchDto, CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
 
 @EntityRepository(ChatRoom)
 export class ChatRoomRepository extends Repository<ChatRoom> {
@@ -45,7 +45,7 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
       },
     });
     if (!chatRoom) throw new NotFoundException('Cannot find Chatroom');
-    chatRoom.participateId = chatParticipate;
+    chatRoom.chatParticipate = chatParticipate;
     try {
       await chatRoom.save();
     } catch (error) {
@@ -64,7 +64,7 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
    */
   protected checkUserRule(userId: string, chatRoom: ChatRoom): boolean {
     let isvalidated = false;
-    chatRoom.participateId.userIds.forEach((user) => {
+    chatRoom.chatParticipate.users.forEach((user) => {
       if (user.id === userId) {
         isvalidated = true;
       }
@@ -83,7 +83,7 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
     try {
       const chatRoom = await this.findOne({
         where: { id: getChatRoomByIdDto.id },
-        relations: ['participateId'],
+        relations: ['chatParticipate'],
       });
       if (!chatRoom) return null;
       if (!this.checkUserRule(user.id, chatRoom)) return null;
@@ -93,25 +93,32 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
     }
   }
 
-  public async getUserChatRooms(participateIds: string[]) {
+  public async getUserChatRooms(participateIds: string[], chatSearchDto: ChatSearchDto) {
+    const take = chatSearchDto.take ? Number(chatSearchDto.take) : 10;
+    const skip = chatSearchDto.skip ? Number(chatSearchDto.skip) : 0;
     try {
       const [chatrooms, count] = await this.repoManager.findAndCount(ChatRoom, {
-        join: { alias: 'chatroom', leftJoin: { participateId: 'chatroom.participateId' } },
+        join: { alias: 'chatroom', leftJoin: { chatParticipate: 'chatroom.chatParticipate' } },
         where: (db) => {
-          db.andWhere('participateId.id IN (:...id)', { id: participateIds });
+          db.andWhere('chatParticipate.id IN (:...id)', { id: participateIds });
         },
-        take: 10,
-        skip: 0,
+        order: {
+          updatedAt: chatSearchDto.sort,
+        },
+        take,
+        skip,
       });
       if (!chatrooms) return null;
       chatrooms.forEach((chatroom) => {
-        chatroom.participateId.userIds.forEach((user) => {
+        chatroom.chatParticipate.users.forEach((user) => {
           delete user.password;
           delete user.salt;
         });
       });
       return {
         chatrooms,
+        take,
+        skip,
         count,
       };
     } catch (error) {

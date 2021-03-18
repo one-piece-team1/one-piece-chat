@@ -13,32 +13,32 @@ export class ChatParticipate extends BaseEntity {
    */
   @OneToOne(
     () => ChatRoom,
-    (chatRoom) => chatRoom.participateId,
+    (chatRoom) => chatRoom.chatParticipate,
   )
   @JoinColumn()
-  chatRoomId: ChatRoom;
+  chatRoom: ChatRoom;
 
   /**
    * @description Relation with chat
    */
   @OneToMany(
     () => Chat,
-    (chat) => chat.chatParticipateId,
+    (chat) => chat.chatParticipate,
     { eager: true },
   )
   @JoinColumn()
-  messageIds: Chat[];
+  chats: Chat[];
 
   /**
    * @description Relation with User
    */
   @ManyToMany(
     () => User,
-    (user) => user.chatParticipateIds,
+    (user) => user.chatParticipates,
     { cascade: true, eager: true },
   )
   @JoinTable()
-  userIds: User[];
+  users: User[];
 
   /**
    * @description Time area

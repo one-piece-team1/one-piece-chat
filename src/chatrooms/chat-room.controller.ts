@@ -1,9 +1,9 @@
-import { Body, Controller, Get, Param, Post, SetMetadata, UseGuards, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, SetMetadata, UseGuards, ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RoleGuard } from '../guards/local-guard';
 import { CurrentUser } from '../strategy';
 import { ChatRoomService } from './chat-room.service';
-import { CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
+import { ChatSearchDto, CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
 import * as EUser from '../enums';
 import * as IShare from '../interfaces';
 
@@ -14,8 +14,8 @@ export class ChatRoomController {
   @Get('/paging')
   @SetMetadata('roles', [EUser.EUserRole.USER, EUser.EUserRole.VIP1, EUser.EUserRole.VIP2, EUser.EUserRole.ADMIN])
   @UseGuards(AuthGuard(['jwt']), RoleGuard)
-  getUserChatRooms(@CurrentUser() user: IShare.UserInfo | IShare.JwtPayload) {
-    return this.chatRoomService.getUserChatRooms(user);
+  getUserChatRooms(@CurrentUser() user: IShare.UserInfo | IShare.JwtPayload, @Query(ValidationPipe) searchDto: ChatSearchDto) {
+    return this.chatRoomService.getUserChatRooms(user, searchDto);
   }
 
   @Get('/:id')

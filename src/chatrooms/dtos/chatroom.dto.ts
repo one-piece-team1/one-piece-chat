@@ -1,4 +1,4 @@
-import { IsIn, IsString, IsUUID } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 import * as EChatRoom from '../enums';
 
 class ChatRoomBaseDto {
@@ -21,3 +21,20 @@ export class CreateChatRoomDto {
 }
 
 export class GetChatRoomByIdDto extends ChatRoomBaseDto {}
+
+export class ChatSearchDto {
+  @IsOptional()
+  @IsNumber()
+  take?: number;
+
+  @IsOptional()
+  @IsNumber()
+  skip?: number;
+
+  @IsOptional()
+  @IsString()
+  keyword: string;
+
+  @IsOptional()
+  sort?: 'ASC' | 'DESC';
+}

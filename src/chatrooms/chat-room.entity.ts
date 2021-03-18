@@ -24,11 +24,11 @@ export class ChatRoom extends BaseEntity {
    */
   @OneToOne(
     () => ChatParticipate,
-    (chatParticipate) => chatParticipate.chatRoomId,
+    (chatParticipate) => chatParticipate.chatRoom,
     { cascade: true, eager: true },
   )
   @JoinColumn()
-  participateId: ChatParticipate;
+  chatParticipate: ChatParticipate;
 
   /**
    * @description Time area

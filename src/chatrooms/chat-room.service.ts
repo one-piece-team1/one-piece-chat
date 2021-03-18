@@ -5,9 +5,10 @@ import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.
 import { UserRepository } from 'users/user.repository';
 import { ChatRoomProudcerService } from '../producers/chatroom.producer';
 import { ChatRoomAggregate } from './aggregates/chat-room.aggregate';
-import { CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
+import { ChatSearchDto, CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
 import { CreateChatParticiPantDto } from '../chatparticipates/dtos';
 import HTTPResponse from '../libs/response';
+import * as EShare from '../enums';
 import * as IShare from '../interfaces';
 import * as EChatRoom from './enums';
 import * as IChatRoom from './interfaces';
@@ -62,7 +63,7 @@ export class ChatRoomService {
     }
 
     const particpateUsers = await this.userRepositoy.getParticipates([createChatRoomDto.requestUserId, createChatRoomDto.responseUserId]);
-    const createChatParticipateDto: CreateChatParticiPantDto = { chatRoomId: chatRoom, userIds: particpateUsers };
+    const createChatParticipateDto: CreateChatParticiPantDto = { chatRoom, users: particpateUsers };
     const chatParticipate = await this.chatParticipateRepository.createChatParticipate(createChatParticipateDto);
 
     if (!chatParticipate) {
@@ -138,8 +139,11 @@ export class ChatRoomService {
     }
   }
 
-  public async getUserChatRooms(user: IShare.UserInfo | IShare.JwtPayload) {
-    const chatUser = await this.userRepositoy.getUserById(user.id, false);
+  public async getUserChatRooms(user: IShare.UserInfo | IShare.JwtPayload, chatSearchDto: ChatSearchDto) {
+    if (!chatSearchDto.keyword) chatSearchDto.keyword = '';
+    if (!chatSearchDto.sort) chatSearchDto.sort = 'DESC';
+    const isAdmin = user.role === EShare.EUserRole.ADMIN;
+    const chatUser = await this.userRepositoy.getUserById(user.id, isAdmin);
     if (!chatUser) {
       this.logger.error('Invalid credential', '', 'GetUserChatRoomsError');
       return new HttpException(
@@ -162,7 +166,7 @@ export class ChatRoomService {
       );
     }
     try {
-      return await this.chatRoomRepository.getUserChatRooms(participateIds);
+      return await this.chatRoomRepository.getUserChatRooms(participateIds, chatSearchDto);
     } catch (error) {
       console.error('error: ', error);
       this.logger.error(error.message, '', 'GetUserChatRoomsError');
