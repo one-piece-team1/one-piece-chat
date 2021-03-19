@@ -30,7 +30,6 @@ export class Chat extends BaseEntity {
     () => ChatParticipate,
     (chatParticipate) => chatParticipate.chats,
   )
-  @JoinColumn()
   chatParticipate: ChatParticipate;
 
   /**

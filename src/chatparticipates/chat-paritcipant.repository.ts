@@ -1,11 +1,12 @@
 import { InternalServerErrorException, Logger } from '@nestjs/common';
-import { EntityManager, EntityRepository, getManager, Repository } from 'typeorm';
+import { EntityManager, EntityRepository, getManager } from 'typeorm';
+import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 import { User } from '../users/user.entity';
 import { ChatParticipate } from './chat-participant.entity';
 import { CreateChatParticiPantDto } from './dtos';
 
 @EntityRepository(ChatParticipate)
-export class ChatParticipateRepository extends Repository<ChatParticipate> {
+export class ChatParticipateRepository extends BaseRepository<ChatParticipate> {
   private readonly repoManager: EntityManager = getManager();
   private readonly logger: Logger = new Logger('ChatParticipateRepository');
 
@@ -16,10 +17,10 @@ export class ChatParticipateRepository extends Repository<ChatParticipate> {
    * @returns {Promise<ChatParticipate>}
    */
   public async createChatParticipate(createChatParticiPantDto: CreateChatParticiPantDto): Promise<ChatParticipate> {
-    const { chatRoom, users } = createChatParticiPantDto;
+    const { users } = createChatParticiPantDto;
     const chatParticipate = new ChatParticipate();
-    chatParticipate.chatRoom = chatRoom;
     chatParticipate.users = users;
+    chatParticipate.chats = [createChatParticiPantDto.chat];
     try {
       await chatParticipate.save();
     } catch (error) {
@@ -39,7 +40,6 @@ export class ChatParticipateRepository extends Repository<ChatParticipate> {
   public async getChatParticipateIdsByUser(user: User): Promise<string[]> {
     try {
       const participates: ChatParticipate[] = await this.createQueryBuilder('chatparticipate')
-        .setLock('pessimistic_write')
         .leftJoinAndSelect('chatparticipate.users', 'users')
         .andWhere('users.id = :id', { id: user.id })
         .select('chatparticipate.id')

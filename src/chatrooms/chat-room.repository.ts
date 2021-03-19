@@ -1,13 +1,14 @@
-import { InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
-import { EntityManager, EntityRepository, getManager, Repository } from 'typeorm';
+import { InternalServerErrorException, Logger } from '@nestjs/common';
+import { Connection, EntityRepository, getConnection, Repository } from 'typeorm';
+import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 import { ChatRoom } from './chat-room.entity';
 import { User } from '../users/user.entity';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
 import { ChatSearchDto, CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
 
 @EntityRepository(ChatRoom)
-export class ChatRoomRepository extends Repository<ChatRoom> {
-  private readonly repoManager: EntityManager = getManager();
+export class ChatRoomRepository extends BaseRepository<ChatRoom> {
+  private readonly connection: Connection = getConnection('default');
   private readonly logger: Logger = new Logger('ChatRoomRepository');
 
   /**
@@ -16,44 +17,15 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
    * @param {CreateChatRoomDto} createChatRoomDto
    * @returns {Promise<ChatRoom>}
    */
-  public async createChatRoom(createChatRoomDto: CreateChatRoomDto): Promise<ChatRoom> {
-    const { name, type } = createChatRoomDto;
+  public async createChatRoom(createChatRoomDto: CreateChatRoomDto, chatParticipate: ChatParticipate): Promise<ChatRoom> {
     const chatRoom = new ChatRoom();
-    chatRoom.name = name;
-    chatRoom.type = type;
-
-    try {
-      await chatRoom.save();
-    } catch (error) {
-      this.logger.error(error.message, '', 'CreateChatRoom');
-      throw new InternalServerErrorException(error.message);
-    }
-    return chatRoom;
-  }
-
-  /**
-   * @description Update chatroom participate
-   * @public
-   * @lock
-   * @param {string} id
-   * @param {ChatParticipate} chatParticipate
-   * @returns {Promise<ChatRoom>}
-   */
-  public async updateChatRoomParticipateRelations(id: string, chatParticipate: ChatParticipate): Promise<ChatRoom> {
-    const chatRoom = await this.findOne({
-      where: {
-        id,
-      },
-      lock: {
-        mode: 'pessimistic_write',
-      },
-    });
-    if (!chatRoom) throw new NotFoundException('Cannot find Chatroom');
+    chatRoom.name = createChatRoomDto.name;
+    chatRoom.type = createChatRoomDto.type;
     chatRoom.chatParticipate = chatParticipate;
     try {
-      await chatRoom.save();
+      await chatRoom.save({ transaction: true });
     } catch (error) {
-      this.logger.error(error.message, '', 'UpdateChatRoomParticipateRelations');
+      this.logger.error(error.message, '', 'CreateChatRoom');
       throw new InternalServerErrorException(error.message);
     }
     return chatRoom;
@@ -85,14 +57,20 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
    */
   public async getChatRoomById(user: User, getChatRoomByIdDto: GetChatRoomByIdDto): Promise<ChatRoom> {
     try {
-      const chatRoom = await this.findOne({
-        where: { id: getChatRoomByIdDto.id },
-        relations: ['chatParticipate'],
-      });
+      const chatRoom = await this.createQueryBuilder('chatroom')
+        .useTransaction(true)
+        .setLock('pessimistic_read')
+        .andWhere('chatroom.id = :id', { id: getChatRoomByIdDto.id })
+        .innerJoinAndSelect('chatroom.chatParticipate', 'participate', 'chatroom.chatParticipateId = participate.id')
+        .innerJoinAndSelect('participate.users', 'users')
+        .innerJoinAndSelect('participate.chats', 'chats')
+        .getOne();
+      console.log('cr: ', chatRoom);
       if (!chatRoom) return null;
       if (!this.checkUserRule(user.id, chatRoom)) return null;
       return chatRoom;
     } catch (error) {
+      console.error(error);
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -112,14 +90,18 @@ export class ChatRoomRepository extends Repository<ChatRoom> {
       const [chatrooms, count] = await this.findAndCount({
         join: { alias: 'chatroom', leftJoin: { chatParticipate: 'chatroom.chatParticipate' } },
         where: (db) => {
-          db.andWhere('chatParticipate.id IN (:...id)', { id: participateIds });
+          db.leftJoinAndSelect('chatroom.chatParticipate', 'participate')
+            .andWhere('participate.id IN (:...id)', { id: participateIds })
+            .leftJoinAndSelect('participate.users', 'users')
+            .leftJoinAndSelect('participate.chats', 'chats');
         },
         order: {
           updatedAt: chatSearchDto.sort,
         },
-        lock: {
-          mode: 'pessimistic_write',
-        },
+        // lock: {
+        //   mode: 'pessimistic_read',
+        // },
+        // transaction: true,
         take,
         skip,
       });

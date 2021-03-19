@@ -1,4 +1,4 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, BeforeInsert, BeforeUpdate, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 import { ChatRoom } from '../chatrooms/chat-room.entity';
 import { Chat } from '../chats/chat.entity';
 import { User } from '../users/user.entity';
@@ -14,8 +14,8 @@ export class ChatParticipate extends BaseEntity {
   @OneToOne(
     () => ChatRoom,
     (chatRoom) => chatRoom.chatParticipate,
+    { cascade: ['update'], eager: true },
   )
-  @JoinColumn()
   chatRoom: ChatRoom;
 
   /**
@@ -24,7 +24,7 @@ export class ChatParticipate extends BaseEntity {
   @OneToMany(
     () => Chat,
     (chat) => chat.chatParticipate,
-    { eager: true },
+    { cascade: true, eager: true },
   )
   @JoinColumn()
   chats: Chat[];

@@ -1,10 +1,14 @@
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
+import { initializeTransactionalContext, patchTypeORMRepositoryWithBaseRepository } from 'typeorm-transactional-cls-hooked';
 import { AppModule } from './app.module';
 import { config } from '../config';
 
 async function bootstrap() {
+  initializeTransactionalContext();
+  patchTypeORMRepositoryWithBaseRepository();
+
   const app = await NestFactory.create<NestFastifyApplication>(AppModule);
 
   app.useGlobalPipes(

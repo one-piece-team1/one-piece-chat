@@ -1,12 +1,15 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { ChatRoom } from './chat-room.entity';
 import { ChatRoomRepository } from './chat-room.repository';
 import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
-import { UserRepository } from 'users/user.repository';
+import { Chat } from '../chats/chat.entity';
+import { ChatRepository } from '../chats/chat.repository';
+import { UserRepository } from '../users/user.repository';
 import { ChatRoomProudcerService } from '../producers/chatroom.producer';
 import { ChatRoomAggregate } from './aggregates/chat-room.aggregate';
 import { ChatSearchDto, CreateChatRoomDto, GetChatRoomByIdDto } from './dtos';
-import { CreateChatParticiPantDto } from '../chatparticipates/dtos';
 import HTTPResponse from '../libs/response';
 import * as EShare from '../enums';
 import * as IShare from '../interfaces';
@@ -20,7 +23,18 @@ export class ChatRoomService {
   private readonly httpResponse = new HTTPResponse();
   private readonly chatKafkaTopic = config.EVENT_STORE_SETTINGS.topics.chatTopic;
 
-  constructor(private readonly chatRoomRepository: ChatRoomRepository, private readonly chatParticipateRepository: ChatParticipateRepository, private readonly userRepositoy: UserRepository, private readonly chatRoomProudcerService: ChatRoomProudcerService, private readonly chatRoomAggregate: ChatRoomAggregate) {}
+  constructor(
+    @InjectRepository(ChatRoom)
+    private readonly chatRoomRepository: ChatRoomRepository,
+    @InjectRepository(ChatParticipateRepository)
+    private readonly chatParticipateRepository: ChatParticipateRepository,
+    @InjectRepository(Chat)
+    private readonly chatRepository: ChatRepository,
+    @InjectRepository(UserRepository)
+    private readonly userRepositoy: UserRepository,
+    private readonly chatRoomProudcerService: ChatRoomProudcerService,
+    private readonly chatRoomAggregate: ChatRoomAggregate,
+  ) {}
 
   /**
    * @description Create chat rooom services layer
@@ -29,6 +43,7 @@ export class ChatRoomService {
    * @param {CreateChatRoomDto} createChatRoomDto
    * @returns {Promise<IShare.IResponseBase<ChatRoom> | HttpException>}
    */
+  @Transactional()
   public async createChatRoom(user: IShare.UserInfo | IShare.JwtPayload, createChatRoomDto: CreateChatRoomDto): Promise<IShare.IResponseBase<ChatRoom> | HttpException> {
     if (user.id !== createChatRoomDto.requestUserId) {
       this.logger.error('Invalid credential', '', 'CreateChatRoomError');
@@ -50,7 +65,10 @@ export class ChatRoomService {
         HttpStatus.BAD_REQUEST,
       );
     }
-    const chatRoom = await this.chatRoomRepository.createChatRoom(createChatRoomDto);
+    const chat = await this.chatRepository.createChatMessage(createChatRoomDto.welcomeMessage);
+    const particpateUsers = await this.userRepositoy.getParticipates([createChatRoomDto.requestUserId, createChatRoomDto.responseUserId]);
+    const chatParticipate = await this.chatParticipateRepository.createChatParticipate({ users: particpateUsers, chat });
+    const chatRoom = await this.chatRoomRepository.createChatRoom(createChatRoomDto, chatParticipate);
     if (!chatRoom) {
       this.logger.error('Create chat room failed', '', 'CreateChatRoomError');
       return new HttpException(
@@ -62,37 +80,9 @@ export class ChatRoomService {
       );
     }
 
-    const particpateUsers = await this.userRepositoy.getParticipates([createChatRoomDto.requestUserId, createChatRoomDto.responseUserId]);
-    const createChatParticipateDto: CreateChatParticiPantDto = { chatRoom, users: particpateUsers };
-    const chatParticipate = await this.chatParticipateRepository.createChatParticipate(createChatParticipateDto);
+    this.chatRoomProudcerService.produce<IChatRoom.IAggregateResponse<EChatRoom.EChatRoomSocketEvent, ChatRoom>>(this.chatKafkaTopic, this.chatRoomAggregate.createChatRoom(chatRoom), chatRoom.id);
 
-    if (!chatParticipate) {
-      this.logger.error('Create participate faile', '', 'CreateChatRoomError');
-      return new HttpException(
-        {
-          status: HttpStatus.INTERNAL_SERVER_ERROR,
-          error: 'Create participate failed',
-        },
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-
-    const updatedChatRoom = await this.chatRoomRepository.updateChatRoomParticipateRelations(chatRoom.id, chatParticipate);
-
-    if (!updatedChatRoom) {
-      this.logger.error('Connect participate realtions failed', '', 'CreateChatRoomError');
-      return new HttpException(
-        {
-          status: HttpStatus.CONFLICT,
-          error: 'Connect participate realtions failed',
-        },
-        HttpStatus.CONFLICT,
-      );
-    }
-
-    this.chatRoomProudcerService.produce<IChatRoom.IAggregateResponse<EChatRoom.EChatRoomSocketEvent, ChatRoom>>(this.chatKafkaTopic, this.chatRoomAggregate.createChatRoom(updatedChatRoom), updatedChatRoom.id);
-
-    return this.httpResponse.StatusCreated(updatedChatRoom);
+    return this.httpResponse.StatusCreated(chatRoom);
   }
 
   /**

@@ -13,6 +13,9 @@ export class CreateChatRoomDto {
   @IsIn([EChatRoom.EChatRoomType.PUBLIC, EChatRoom.EChatRoomType.PRIVATE, EChatRoom.EChatRoomType.GROUP])
   type: EChatRoom.EChatRoomType;
 
+  @IsString()
+  welcomeMessage: string;
+
   @IsUUID()
   requestUserId: string;
 
