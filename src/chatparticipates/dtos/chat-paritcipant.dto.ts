@@ -1,11 +1,11 @@
+import { Chat } from 'chats/chat.entity';
 import { IsArray, IsInstance } from 'class-validator';
-import { ChatRoom } from '../../chatrooms/chat-room.entity';
 import { User } from '../../users/user.entity';
 
 export class CreateChatParticiPantDto {
-  @IsInstance(ChatRoom)
-  chatRoomId: ChatRoom;
-
   @IsArray()
-  userIds: User[];
+  users: User[];
+
+  @IsInstance(Chat)
+  chat: Chat;
 }

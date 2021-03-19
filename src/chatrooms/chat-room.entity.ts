@@ -1,4 +1,4 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
 import * as EChatRoom from './enums';
 
@@ -24,11 +24,11 @@ export class ChatRoom extends BaseEntity {
    */
   @OneToOne(
     () => ChatParticipate,
-    (chatParticipate) => chatParticipate.chatRoomId,
+    (chatParticipate) => chatParticipate.chatRoom,
     { cascade: true },
   )
   @JoinColumn()
-  participateId: ChatParticipate;
+  chatParticipate: ChatParticipate;
 
   /**
    * @description Time area

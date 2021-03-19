@@ -1,4 +1,4 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, BeforeInsert, BeforeUpdate, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
 import { ChatRoom } from '../chatrooms/chat-room.entity';
 import { Chat } from '../chats/chat.entity';
 import { User } from '../users/user.entity';
@@ -13,31 +13,32 @@ export class ChatParticipate extends BaseEntity {
    */
   @OneToOne(
     () => ChatRoom,
-    (chatRoom) => chatRoom.participateId,
+    (chatRoom) => chatRoom.chatParticipate,
+    { cascade: ['update'], eager: true },
   )
-  @JoinColumn()
-  chatRoomId: ChatRoom;
+  chatRoom: ChatRoom;
 
   /**
    * @description Relation with chat
    */
   @OneToMany(
     () => Chat,
-    (chat) => chat.chatParticipateId,
+    (chat) => chat.chatParticipate,
+    { cascade: true, eager: true },
   )
   @JoinColumn()
-  messageIds: Chat[];
+  chats: Chat[];
 
   /**
    * @description Relation with User
    */
   @ManyToMany(
     () => User,
-    (user) => user.chatParticipateIds,
-    { cascade: true },
+    (user) => user.chatParticipates,
+    { cascade: true, eager: true },
   )
   @JoinTable()
-  userIds: User[];
+  users: User[];
 
   /**
    * @description Time area

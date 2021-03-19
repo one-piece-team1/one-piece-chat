@@ -49,10 +49,10 @@ export class User extends BaseEntity {
   @Index({ unique: true })
   email: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: false, select: false })
   password: string;
 
-  @Column({ type: 'varchar', nullable: false })
+  @Column({ type: 'varchar', nullable: false, select: false })
   salt: string;
 
   /**
@@ -81,9 +81,9 @@ export class User extends BaseEntity {
    */
   @ManyToMany(
     () => ChatParticipate,
-    (chatParticipate) => chatParticipate.userIds,
+    (chatParticipate) => chatParticipate.users,
   )
-  chatParticipateIds: ChatParticipate[];
+  chatParticipates: ChatParticipate[];
 
   /**
    * @description Following Area
