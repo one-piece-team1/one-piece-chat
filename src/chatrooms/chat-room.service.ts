@@ -38,6 +38,7 @@ export class ChatRoomService {
 
   /**
    * @description Create chat rooom services layer
+   * @transaction
    * @public
    * @param {IShare.UserInfo | IShare.JwtPayload} user
    * @param {CreateChatRoomDto} createChatRoomDto

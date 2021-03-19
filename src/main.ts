@@ -6,6 +6,7 @@ import { AppModule } from './app.module';
 import { config } from '../config';
 
 async function bootstrap() {
+  // registeration for transaction namespace
   initializeTransactionalContext();
   patchTypeORMRepositoryWithBaseRepository();
 

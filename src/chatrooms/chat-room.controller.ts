@@ -12,6 +12,14 @@ import * as IShare from '../interfaces';
 export class ChatRoomController {
   constructor(private readonly chatRoomService: ChatRoomService) {}
 
+  /**
+   * @description Get user chat rooms with paging
+   * @get
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {ChatSearchDto} chatSearchDto
+   * @returns {Promise<IShare.IResponseBase<IShare.IChatRoomPagingResponseBase<ChatRoom[]>> | HttpException>}
+   */
   @Get('/paging')
   @SetMetadata('roles', [EUser.EUserRole.USER, EUser.EUserRole.VIP1, EUser.EUserRole.VIP2, EUser.EUserRole.ADMIN])
   @UseGuards(AuthGuard(['jwt']), RoleGuard)
@@ -19,6 +27,14 @@ export class ChatRoomController {
     return this.chatRoomService.getUserChatRooms(user, searchDto);
   }
 
+  /**
+   * @description Get chatroom by id
+   * @get
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {GetChatRoomByIdDto} getChatRoomByIdDto
+   * @returns {Promise<IShare.IResponseBase<ChatRoom> | HttpException>}
+   */
   @Get('/:id')
   @SetMetadata('roles', [EUser.EUserRole.USER, EUser.EUserRole.VIP1, EUser.EUserRole.VIP2, EUser.EUserRole.ADMIN])
   @UseGuards(AuthGuard(['jwt']), RoleGuard)
@@ -26,6 +42,15 @@ export class ChatRoomController {
     return this.chatRoomService.getChatRoomById(user, getChatRoomByIdDto);
   }
 
+  /**
+   * @description Create chat rooom services layer
+   * @post
+   * @transaction
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {CreateChatRoomDto} createChatRoomDto
+   * @returns {Promise<IShare.IResponseBase<ChatRoom> | HttpException>}
+   */
   @Post('/')
   @SetMetadata('roles', [EUser.EUserRole.USER, EUser.EUserRole.VIP1, EUser.EUserRole.VIP2, EUser.EUserRole.ADMIN])
   @UseGuards(AuthGuard(['jwt']), RoleGuard)

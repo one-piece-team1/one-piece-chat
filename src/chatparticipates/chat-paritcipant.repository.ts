@@ -54,7 +54,14 @@ export class ChatParticipateRepository extends BaseRepository<ChatParticipate> {
     }
   }
 
-  private checkUserRight(particiapate: ChatParticipate, requestUser: IShare.UserInfo | IShare.JwtPayload) {
+  /**
+   * @description Check if user has right or not
+   * @private
+   * @param {ChatParticipate} particiapate
+   * @param {IShare.UserInfo | IShare.JwtPayload} requestUser
+   * @returns {boolean}
+   */
+  private checkUserRight(particiapate: ChatParticipate, requestUser: IShare.UserInfo | IShare.JwtPayload): boolean {
     let auth = false;
     particiapate.users.forEach((user) => {
       if (user.id === requestUser.id) auth = true;
@@ -62,6 +69,14 @@ export class ChatParticipateRepository extends BaseRepository<ChatParticipate> {
     return auth;
   }
 
+  /**
+   * @description Insert Chat relations to chat particiapate
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {string} particiapteId
+   * @param {Chat} chat
+   * @returns {Promise<ChatParticipate>}
+   */
   public async insertChatRelations(user: IShare.UserInfo | IShare.JwtPayload, particiapteId: string, chat: Chat): Promise<ChatParticipate> {
     const participate = await this.getChatParticipateById(particiapteId);
     if (!participate) return null;
@@ -75,6 +90,12 @@ export class ChatParticipateRepository extends BaseRepository<ChatParticipate> {
     return participate;
   }
 
+  /**
+   * @description Get chat participate by id
+   * @public
+   * @param {string} id
+   * @returns {Promise<ChatParticipate>}
+   */
   public async getChatParticipateById(id: string): Promise<ChatParticipate> {
     try {
       const particiapte: ChatParticipate = await this.createQueryBuilder('chatparticipate')

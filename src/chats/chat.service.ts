@@ -6,10 +6,13 @@ import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
 import { ChatRepository } from './chat.repository';
 import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
 import { CreateChatDto } from './dtos';
+import HTTPResponse from '../libs/response';
+import * as EShare from '../enums';
 import * as IShare from '../interfaces';
 
 @Injectable()
 export class ChatService {
+  private readonly httpResponse = new HTTPResponse();
   private readonly logger: Logger = new Logger('ChatService');
 
   constructor(
@@ -23,8 +26,16 @@ export class ChatService {
     return 'Hello World!';
   }
 
+  /**
+   * @description Create chat message with transaction
+   * @transaction
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {CreateChatDto} createChatDto
+   * @returns {Promise<IShare.IResponseBase<Chat> | HttpException>}
+   */
   @Transactional()
-  public async createChatMessage(user: IShare.UserInfo | IShare.JwtPayload, createChatDto: CreateChatDto) {
+  public async createChatMessage(user: IShare.UserInfo | IShare.JwtPayload, createChatDto: CreateChatDto): Promise<IShare.IResponseBase<Chat> | HttpException> {
     if (user.id !== createChatDto.requestUserId) {
       this.logger.error('Invalid credential', '', 'CreateChatRoomError');
       return new HttpException(
@@ -69,7 +80,7 @@ export class ChatService {
           HttpStatus.CONFLICT,
         );
       }
-      return chat;
+      return this.httpResponse.StatusCreated(chat);
     } catch (error) {
       this.logger.error(error.message, '', 'CreateChatMessageError');
       return new HttpException(
