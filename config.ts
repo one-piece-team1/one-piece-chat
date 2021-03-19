@@ -59,19 +59,22 @@ const configs = {
     HOST: process.env.APPHOST || 'localhost',
     PORT: process.env.APPPORT || 7075,
 
+    JWT: {
+      KEY: process.env.JWTKEY || 'lib',
+      SECRET: process.env.JWTSECRET || 'lib',
+    },
+
     EVENT_STORE_SETTINGS: {
       protocol: process.env.EVENTSTOREPROTOCOL || 'amqp',
       hostname: process.env.EVENTSTOREHOSTNAME || 'localhost',
       tcpPort: process.env.EVENTSTORETCPPORT || 5672,
       httpPort: process.env.EVENTSTOREHTTPPORT || 2113,
-      credentials: {
-        username: process.env.EVENTSTORECREDENTIALSUSERNAME || 'lib-test',
-        password: process.env.EVENTSTORECREDENTIALSPASSWORD || '12345678',
-      },
-      poolOptions: {
-        min: process.env.EVENTSTOREPOOLOPTIONSMIN || 1,
-        max: process.env.EVENTSTOREPOOLOPTIONSMAX || 10,
-      },
+      bootstrapServers: process.env.KAFKA_BOOTSTRAP_SERVERS || 'localhost:9094',
+      secureProtocol: process.env.KAFKA_SECURITY_PROTOCOL || 'SASL_SSL',
+      saslMechanisms: process.env.KAFKA_SASL_MECHANISMS || 'PLAIN',
+      topics: {
+        chatTopic: process.env.KAFKA_CHAT_TOPIC || 'onepiece-topic-chat',
+      }
     },
 
     DB_SETTINGS: {
