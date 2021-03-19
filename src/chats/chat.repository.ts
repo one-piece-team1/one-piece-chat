@@ -14,7 +14,9 @@ export class ChatRepository extends BaseRepository<Chat> {
   public async createChatMessage(message: string, chatParitcipate: ChatParticipate);
   public async createChatMessage(message: string, chatParitcipate?: ChatParticipate) {
     const chat = new Chat();
-    (chat.sendStatus = EChat.EChatSendStatus.SENDING), (chat.readStatus = EChat.EChatStatus.UNREAD), (chat.message = message);
+    chat.sendStatus = EChat.EChatSendStatus.SENDING;
+    chat.readStatus = EChat.EChatStatus.UNREAD;
+    chat.message = message;
     if (chatParitcipate) chat.chatParticipate = chatParitcipate;
     try {
       await chat.save();

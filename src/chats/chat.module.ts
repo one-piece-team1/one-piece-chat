@@ -7,6 +7,7 @@ import { ChatController } from './chat.controller';
 import { ChatService } from './chat.service';
 import { UserRepository } from '../users/user.repository';
 import { ChatRepository } from './chat.repository';
+import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
 import { ChatEventSubscribers } from '../subscribers';
 import { config } from '../../config';
 
@@ -28,7 +29,7 @@ import { config } from '../../config';
         algorithms: ['HS256'],
       },
     }),
-    TypeOrmModule.forFeature([UserRepository, ChatRepository]),
+    TypeOrmModule.forFeature([UserRepository, ChatRepository, ChatParticipateRepository]),
   ],
   controllers: [ChatController],
   providers: [JwtStrategy, ChatService, ChatEventSubscribers],

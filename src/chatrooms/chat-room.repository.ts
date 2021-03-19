@@ -1,5 +1,5 @@
 import { InternalServerErrorException, Logger } from '@nestjs/common';
-import { Connection, EntityRepository, getConnection, Repository } from 'typeorm';
+import { Connection, EntityRepository, getConnection, In } from 'typeorm';
 import { BaseRepository } from 'typeorm-transactional-cls-hooked';
 import { ChatRoom } from './chat-room.entity';
 import { User } from '../users/user.entity';
@@ -63,14 +63,13 @@ export class ChatRoomRepository extends BaseRepository<ChatRoom> {
         .andWhere('chatroom.id = :id', { id: getChatRoomByIdDto.id })
         .innerJoinAndSelect('chatroom.chatParticipate', 'participate', 'chatroom.chatParticipateId = participate.id')
         .innerJoinAndSelect('participate.users', 'users')
-        .innerJoinAndSelect('participate.chats', 'chats')
+        .innerJoinAndMapMany('participate.chats', 'chat', 'participate.id = chat.chatParticipateId')
         .getOne();
-      console.log('cr: ', chatRoom);
       if (!chatRoom) return null;
       if (!this.checkUserRule(user.id, chatRoom)) return null;
       return chatRoom;
     } catch (error) {
-      console.error(error);
+      this.logger.error(error.message, '', 'GetChatRoomByIdError');
       throw new InternalServerErrorException(error.message);
     }
   }
@@ -78,7 +77,6 @@ export class ChatRoomRepository extends BaseRepository<ChatRoom> {
   /**
    * @description Get user chatrooms by paging
    * @public
-   * @lock
    * @param {string[]} participateIds
    * @param {ChatSearchDto} chatSearchDto
    * @returns {Promise<{ chatrooms: ChatRoom[], take: number; skip: number; count: number; }>}
@@ -88,20 +86,14 @@ export class ChatRoomRepository extends BaseRepository<ChatRoom> {
     const skip = chatSearchDto.skip ? Number(chatSearchDto.skip) : 0;
     try {
       const [chatrooms, count] = await this.findAndCount({
-        join: { alias: 'chatroom', leftJoin: { chatParticipate: 'chatroom.chatParticipate' } },
-        where: (db) => {
-          db.leftJoinAndSelect('chatroom.chatParticipate', 'participate')
-            .andWhere('participate.id IN (:...id)', { id: participateIds })
-            .leftJoinAndSelect('participate.users', 'users')
-            .leftJoinAndSelect('participate.chats', 'chats');
+        join: { alias: 'chatroom', innerJoin: { chatParticipate: 'chatroom.chatParticipate' } },
+        where: {
+          chatParticipate: In(participateIds),
         },
+        relations: ['chatParticipate'],
         order: {
           updatedAt: chatSearchDto.sort,
         },
-        // lock: {
-        //   mode: 'pessimistic_read',
-        // },
-        // transaction: true,
         take,
         skip,
       });
