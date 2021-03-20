@@ -5,21 +5,29 @@ import { Chat } from './chat.entity';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
 import { ChatRepository } from './chat.repository';
 import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
-import { CreateChatDto } from './dtos';
+import { ChatRoomProudcerService } from '../producers/chatroom.producer';
+import { ChatMessageAggregate } from './aggregates/chat-message.aggregate';
 import HTTPResponse from '../libs/response';
+import { CreateChatDto } from './dtos';
 import * as EShare from '../enums';
 import * as IShare from '../interfaces';
+import * as EChat from './enums';
+import * as IChat from './interfaces';
+import { config } from '../../config';
 
 @Injectable()
 export class ChatService {
   private readonly httpResponse = new HTTPResponse();
   private readonly logger: Logger = new Logger('ChatService');
+  private readonly chatKafkaTopic = config.EVENT_STORE_SETTINGS.topics.chatTopic;
 
   constructor(
     @InjectRepository(Chat)
     private readonly chatRepository: ChatRepository,
     @InjectRepository(ChatParticipate)
     private readonly chatParticipateRepository: ChatParticipateRepository,
+    private readonly chatRoomProudcerService: ChatRoomProudcerService,
+    private readonly chatMessageAggregate: ChatMessageAggregate,
   ) {}
 
   public async getRequest(): Promise<string> {
@@ -69,6 +77,9 @@ export class ChatService {
     }
     try {
       const chat = await this.chatRepository.createChatMessage(createChatDto.message, participate);
+      if (chat) {
+        this.chatRoomProudcerService.produce<IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat>>(this.chatKafkaTopic, this.chatMessageAggregate.newChatMessage(chat), chat.chatParticipate.id);
+      }
       const updateChatResult = await this.chatParticipateRepository.insertChatRelations(user, participate.id, chat);
       if (!updateChatResult) {
         this.logger.error('Update chat conflict', '', 'CreateChatMessageError');

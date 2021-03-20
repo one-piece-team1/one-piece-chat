@@ -9,6 +9,8 @@ import { UserRepository } from '../users/user.repository';
 import { ChatRepository } from './chat.repository';
 import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.repository';
 import { ChatEventSubscribers } from '../subscribers';
+import { ChatRoomProudcerService } from '../producers/chatroom.producer';
+import { ChatMessageAggregate } from './aggregates/chat-message.aggregate';
 import { config } from '../../config';
 
 @Module({
@@ -32,6 +34,6 @@ import { config } from '../../config';
     TypeOrmModule.forFeature([UserRepository, ChatRepository, ChatParticipateRepository]),
   ],
   controllers: [ChatController],
-  providers: [JwtStrategy, ChatService, ChatEventSubscribers],
+  providers: [JwtStrategy, ChatService, ChatEventSubscribers, ChatRoomProudcerService, ChatMessageAggregate],
 })
 export class ChatModule {}
