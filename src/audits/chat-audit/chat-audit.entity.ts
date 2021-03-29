@@ -20,6 +20,9 @@ export class ChatAuditLog extends BaseEntity {
   @Column({ type: 'varchar', nullable: false })
   chatId: string;
 
+  @Column({ type: 'varchar', nullable: true })
+  updateAlias?: string;
+
   /**
    * @description Time area
    */

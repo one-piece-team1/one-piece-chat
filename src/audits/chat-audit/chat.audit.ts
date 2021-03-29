@@ -34,7 +34,7 @@ export class ChatAuditSubscriber implements EntitySubscriberInterface<Chat> {
    * @param {UpdateEvent<Chat>} event
    */
   afterUpdate(event: UpdateEvent<Chat>) {
-    this.insertUpdateEvent(event.entity);
+    this.insertUpdateEvent(event);
   }
 
   /**
@@ -68,13 +68,14 @@ export class ChatAuditSubscriber implements EntitySubscriberInterface<Chat> {
   /**
    * @description Insert update chat log
    * @public
-   * @param {Chat} event
+   * @param {UpdateEvent<Chat>} event
    */
-  async insertUpdateEvent(event: Chat) {
+  async insertUpdateEvent(event: UpdateEvent<Chat>) {
     const chatAuditLog = new ChatAuditLog();
-    chatAuditLog.version = event.version;
-    chatAuditLog.chatId = event.id;
+    chatAuditLog.version = event.entity.version;
+    chatAuditLog.chatId = event.entity.id;
     chatAuditLog.type = EAudit.EAduitType.UPDATE;
+    chatAuditLog.updateAlias = event.updatedColumns.map((col) => col.databaseName).join(',');
     try {
       await chatAuditLog.save();
     } catch (error) {

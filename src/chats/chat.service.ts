@@ -8,7 +8,7 @@ import { ChatParticipateRepository } from '../chatparticipates/chat-paritcipant.
 import { ChatRoomProudcerService } from '../producers/chatroom.producer';
 import { ChatMessageAggregate } from './aggregates/chat-message.aggregate';
 import HTTPResponse from '../libs/response';
-import { CreateChatDto } from './dtos';
+import { CreateChatDto, ChatIdDto, UpdateChatReadStatusDto, UpdateChatSendStatusDto } from './dtos';
 import * as EShare from '../enums';
 import * as IShare from '../interfaces';
 import * as EChat from './enums';
@@ -94,6 +94,74 @@ export class ChatService {
       return this.httpResponse.StatusCreated(chat);
     } catch (error) {
       this.logger.error(error.message, '', 'CreateChatMessageError');
+      return new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Create chat failed',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * @description UPdate Chat read status
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {ChatIdDto} chatIdDto
+   * @param {UpdateChatReadStatusDto} updateChatReadStatusDto
+   */
+  @Transactional()
+  public async updateChatReadStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatReadStatusDto: UpdateChatReadStatusDto) {
+    if (user.id !== updateChatReadStatusDto.requestUserId) {
+      this.logger.error('Invalid credential', '', 'UpdateChatReadStatusError');
+      return new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'Invalid credential',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    try {
+      return await this.chatRepository.updateChatReadStatus(chatIdDto, updateChatReadStatusDto);
+    } catch (error) {
+      this.logger.error(error.message, '', 'UpdateChatReadStatusError');
+      return new HttpException(
+        {
+          status: HttpStatus.INTERNAL_SERVER_ERROR,
+          error: 'Create chat failed',
+        },
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * @description UPdate Chat send status
+   * @public
+   * @param {IShare.UserInfo | IShare.JwtPayload} user
+   * @param {ChatIdDto} chatIdDto
+   * @param {UpdateChatSendStatusDto} updateChatSendStatusDto
+   */
+  @Transactional()
+  public async updateChatSendStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatSendStatusDto: UpdateChatSendStatusDto) {
+    if (user.id !== updateChatSendStatusDto.requestUserId) {
+      this.logger.error('Invalid credential', '', 'UpdateChatReadStatusError');
+      return new HttpException(
+        {
+          status: HttpStatus.FORBIDDEN,
+          error: 'Invalid credential',
+        },
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    try {
+      return await this.chatRepository.updateChatSendStatus(chatIdDto, updateChatSendStatusDto);
+    } catch (error) {
+      this.logger.error(error.message, '', 'UpdateChatReadStatusError');
       return new HttpException(
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,
