@@ -69,11 +69,23 @@ const configs = {
       hostname: process.env.EVENTSTOREHOSTNAME || 'localhost',
       tcpPort: process.env.EVENTSTORETCPPORT || 5672,
       httpPort: process.env.EVENTSTOREHTTPPORT || 2113,
+      credentials: {
+        username: process.env.EVENTSTORECREDENTIALSUSERNAME || 'lib-test',
+        password: process.env.EVENTSTORECREDENTIALSPASSWORD || '12345678',
+      },
+      poolOptions: {
+        min: process.env.EVENTSTOREPOOLOPTIONSMIN || 1,
+        max: process.env.EVENTSTOREPOOLOPTIONSMAX || 10000,
+      },
       bootstrapServers: process.env.KAFKA_BOOTSTRAP_SERVERS || 'localhost:9094',
       secureProtocol: process.env.KAFKA_SECURITY_PROTOCOL || 'SASL_SSL',
       saslMechanisms: process.env.KAFKA_SASL_MECHANISMS || 'PLAIN',
+      chatEvent: {
+        groupId: process.env.KAFKA_CHAT_CONSUMER_GROUP || 'onepiece-topic-chat-event-groups',
+      },
       topics: {
         chatTopic: process.env.KAFKA_CHAT_TOPIC || 'onepiece-topic-chat',
+        chatEventTopic: process.env.KAFKA_CHAT_EVENT_TOPIC || 'onepiece-topic-chat-event',
       }
     },
 
@@ -88,6 +100,7 @@ const configs = {
     },
 
     REDIS_URL: process.env.REDIS_URL || "redis://127.0.0.1:6379",
+    REDIS_BLACKLIST_URL: process.env.REDIS_BLACKLIST_URL || "redis://127.0.0.1:6379",
 
     GEO_CONFIGS: {
       key: process.env.GEOKEY,
