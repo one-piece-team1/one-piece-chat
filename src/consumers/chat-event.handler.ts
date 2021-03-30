@@ -1,21 +1,21 @@
-import { HttpException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import Kafka from 'node-rdkafka';
 import { Chat } from '../chats/chat.entity';
-import { ChatRepository } from '../chats/chat.repository';
+import { ChatService } from '../chats/chat.service';
 import * as EChat from './enums';
 import * as IChat from './interfaces';
 
 @Injectable()
 export class ChatEventHandler {
-  constructor(private readonly chatRepository: ChatRepository) {}
+  constructor(private readonly chatService: ChatService) {}
 
   /**
    * @description register kafka message
    * @public
    * @param {Kafka.Message} kafkaMessage
-   * @returns {Promise<Chat>}
+   * @returns {Promise<Chat | HttpException>}
    */
-  public register(kafkaMessage: Kafka.Message): Promise<Chat> {
+  public register(kafkaMessage: Kafka.Message): Promise<Chat | HttpException> {
     if (!kafkaMessage) throw new InternalServerErrorException('Non message is being proecssed');
     const evt: IChat.IEventAggregateResponse<EChat.EChatEeventFromSocket, IChat.IUpdateChatStatusEvt> = JSON.parse(kafkaMessage.value.toString());
     return this.assign(evt);
@@ -25,16 +25,14 @@ export class ChatEventHandler {
    * @description assign kafka message event
    * @public
    * @param {IChat.IEventAggregateResponse<EChat.EChatEeventFromSocket, IChat.IUpdateChatStatusEvt>} evt
-   * @returns {Promise<Chat>}
+   * @returns {Promise<Chat | HttpException>}
    */
-  private assign(evt: IChat.IEventAggregateResponse<EChat.EChatEeventFromSocket, IChat.IUpdateChatStatusEvt>): Promise<Chat> {
-    if (evt.data.user.id !== evt.data.requestUserId) throw new UnauthorizedException();
-
+  private assign(evt: IChat.IEventAggregateResponse<EChat.EChatEeventFromSocket, IChat.IUpdateChatStatusEvt>): Promise<Chat | HttpException> {
     switch (evt.type) {
       case EChat.EChatEeventFromSocket.UPDATEREADSTATUS:
-        return this.chatRepository.updateChatReadStatus({ id: evt.data.chatId }, { requestUserId: evt.data.requestUserId, readStatus: evt.data.readStatus });
-      case EChat.EChatEeventFromSocket.UPDATEREADSTATUS:
-        return this.chatRepository.updateChatSendStatus({ id: evt.data.chatId }, { requestUserId: evt.data.requestUserId, sendStatus: evt.data.sendStatus });
+        return this.chatService.updateChatReadStatus(evt.data.user, { id: evt.data.chatId }, { requestUserId: evt.data.requestUserId, readStatus: evt.data.readStatus });
+      case EChat.EChatEeventFromSocket.UPDATESENDSTATUS:
+        return this.chatService.updateChatSendStatus(evt.data.user, { id: evt.data.chatId }, { requestUserId: evt.data.requestUserId, sendStatus: evt.data.sendStatus });
     }
   }
 }
