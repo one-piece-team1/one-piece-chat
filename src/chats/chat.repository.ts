@@ -62,14 +62,20 @@ export class ChatRepository extends BaseRepository<Chat> {
    * @returns {Promise<Chat>}
    */
   public async updateChatReadStatus(chatIdDto: ChatIdDto, updateChatReadStatusDto: UpdateChatReadStatusDto): Promise<Chat> {
-    const chat = await this.findOne({
+    const chat = await this.repoManager.getRepository(Chat).findOne({
       where: { id: chatIdDto.id },
       relations: ['chatParticipate'],
     });
-    if (!chat) throw new NotFoundException(`Chat ${chatIdDto.id} not found`);
+    if (!chat) {
+      this.logger.error(`Chat ${chatIdDto.id} not found`, '', 'UpdateChatReadStatusError');
+      throw new NotFoundException(`Chat ${chatIdDto.id} not found`);
+    }
     if (chat.readStatus === 'read') return chat;
     const isValidated = this.validateRequestUser(chat.chatParticipate.users, updateChatReadStatusDto.requestUserId);
-    if (!isValidated) throw new UnauthorizedException(`Invalid Request`);
+    if (!isValidated) {
+      this.logger.error(`Invalid Request`, '', 'UpdateChatReadStatusError');
+      throw new UnauthorizedException('Invalid Request');
+    }
     try {
       chat.readStatus = updateChatReadStatusDto.readStatus;
       await chat.save();
@@ -88,19 +94,25 @@ export class ChatRepository extends BaseRepository<Chat> {
    * @returns
    */
   public async updateChatSendStatus(chatIdDto: ChatIdDto, updateChatSendStatusDto: UpdateChatSendStatusDto): Promise<Chat> {
-    const chat = await this.findOne({
+    const chat = await this.repoManager.getRepository(Chat).findOne({
       where: { id: chatIdDto.id },
       relations: ['chatParticipate'],
     });
-    if (!chat) throw new NotFoundException(`Chat ${chatIdDto.id} not found`);
+    if (!chat) {
+      this.logger.error(`Chat ${chatIdDto.id} not found`, '', 'UpdateChatSendStatusError');
+      throw new NotFoundException(`Chat ${chatIdDto.id} not found`);
+    }
     if (chat.sendStatus === 'finish') return chat;
     const isValidated = this.validateRequestUser(chat.chatParticipate.users, updateChatSendStatusDto.requestUserId);
-    if (!isValidated) throw new UnauthorizedException(`Invalid Request`);
+    if (!isValidated) {
+      this.logger.error(`Invalid Request`, '', 'UpdateChatSendStatusError');
+      throw new UnauthorizedException('Invalid Request');
+    }
     try {
       chat.sendStatus = updateChatSendStatusDto.sendStatus;
       await chat.save();
     } catch (error) {
-      this.logger.error(error.message, '', 'UpdateChatReadStatusError');
+      this.logger.error(error.message, '', 'UpdateChatSendStatusError');
       throw new InternalServerErrorException(error.message);
     }
     return chat;

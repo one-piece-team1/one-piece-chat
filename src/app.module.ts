@@ -3,10 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ormConfig } from './config/orm.config';
 import { ChatModule } from './chats/chat.module';
 import { ChatRoomModule } from './chatrooms/chat-room.module';
-import { ChatEventConsumerService } from './consumers/chat.consumer';
+import { ChatEventConsumerModule } from './consumers/chat-consumer.module';
 
 @Module({
-  imports: [TypeOrmModule.forRoot(ormConfig), ChatModule, ChatRoomModule],
-  providers: [ChatEventConsumerService],
+  imports: [TypeOrmModule.forRoot(ormConfig), ChatModule, ChatRoomModule, ChatEventConsumerModule],
 })
 export class AppModule {}

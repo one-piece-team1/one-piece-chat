@@ -111,7 +111,6 @@ export class ChatService {
    * @param {ChatIdDto} chatIdDto
    * @param {UpdateChatReadStatusDto} updateChatReadStatusDto
    */
-  @Transactional()
   public async updateChatReadStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatReadStatusDto: UpdateChatReadStatusDto) {
     if (user.id !== updateChatReadStatusDto.requestUserId) {
       this.logger.error('Invalid credential', '', 'UpdateChatReadStatusError');
@@ -145,7 +144,6 @@ export class ChatService {
    * @param {ChatIdDto} chatIdDto
    * @param {UpdateChatSendStatusDto} updateChatSendStatusDto
    */
-  @Transactional()
   public async updateChatSendStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatSendStatusDto: UpdateChatSendStatusDto) {
     if (user.id !== updateChatSendStatusDto.requestUserId) {
       this.logger.error('Invalid credential', '', 'UpdateChatReadStatusError');
