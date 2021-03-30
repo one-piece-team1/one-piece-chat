@@ -110,8 +110,9 @@ export class ChatService {
    * @param {IShare.UserInfo | IShare.JwtPayload} user
    * @param {ChatIdDto} chatIdDto
    * @param {UpdateChatReadStatusDto} updateChatReadStatusDto
+   * @returns {Promise<IShare.IResponseBase<Chat> | HttpException>}
    */
-  public async updateChatReadStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatReadStatusDto: UpdateChatReadStatusDto) {
+  public async updateChatReadStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatReadStatusDto: UpdateChatReadStatusDto): Promise<IShare.IResponseBase<Chat> | HttpException> {
     if (user.id !== updateChatReadStatusDto.requestUserId) {
       this.logger.error('Invalid credential', '', 'UpdateChatReadStatusError');
       return new HttpException(
@@ -124,7 +125,33 @@ export class ChatService {
     }
 
     try {
-      return await this.chatRepository.updateChatReadStatus(chatIdDto, updateChatReadStatusDto);
+      const result = await this.chatRepository.updateChatReadStatus(chatIdDto, updateChatReadStatusDto);
+      if (typeof result === 'number') {
+        if (result === 404) {
+          this.logger.error(`Chat ${chatIdDto.id} not found`, '', 'UpdateChatReadStatusError');
+          return new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: `Chat ${chatIdDto.id} not found`,
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
+        if (result === 401) {
+          this.logger.error(`Invalid Request`, '', 'UpdateChatReadStatusError');
+          return new HttpException(
+            {
+              status: HttpStatus.UNAUTHORIZED,
+              error: `Invalid Request`,
+            },
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+      }
+
+      this.chatRoomProudcerService.produce<IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat>>(this.chatKafkaTopic, this.chatMessageAggregate.updateReadStatusMessage(result as Chat), result['chatParticipate']['id']);
+      return this.httpResponse.StatusOK(result as Chat);
     } catch (error) {
       this.logger.error(error.message, '', 'UpdateChatReadStatusError');
       return new HttpException(
@@ -143,10 +170,11 @@ export class ChatService {
    * @param {IShare.UserInfo | IShare.JwtPayload} user
    * @param {ChatIdDto} chatIdDto
    * @param {UpdateChatSendStatusDto} updateChatSendStatusDto
+   * @returns {Promise<IShare.IResponseBase<Chat> | HttpException>}
    */
-  public async updateChatSendStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatSendStatusDto: UpdateChatSendStatusDto) {
+  public async updateChatSendStatus(user: IShare.UserInfo | IShare.JwtPayload, chatIdDto: ChatIdDto, updateChatSendStatusDto: UpdateChatSendStatusDto): Promise<IShare.IResponseBase<Chat> | HttpException> {
     if (user.id !== updateChatSendStatusDto.requestUserId) {
-      this.logger.error('Invalid credential', '', 'UpdateChatReadStatusError');
+      this.logger.error('Invalid credential', '', 'UpdateChatSendStatusError');
       return new HttpException(
         {
           status: HttpStatus.FORBIDDEN,
@@ -157,9 +185,35 @@ export class ChatService {
     }
 
     try {
-      return await this.chatRepository.updateChatSendStatus(chatIdDto, updateChatSendStatusDto);
+      const result = await this.chatRepository.updateChatSendStatus(chatIdDto, updateChatSendStatusDto);
+      if (typeof result === 'number') {
+        if (result === 404) {
+          this.logger.error(`Chat ${chatIdDto.id} not found`, '', 'UpdateChatSendStatusError');
+          return new HttpException(
+            {
+              status: HttpStatus.NOT_FOUND,
+              error: `Chat ${chatIdDto.id} not found`,
+            },
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
+        if (result === 401) {
+          this.logger.error(`Invalid Request`, '', 'UpdateChatSendStatusError');
+          return new HttpException(
+            {
+              status: HttpStatus.UNAUTHORIZED,
+              error: `Invalid Request`,
+            },
+            HttpStatus.UNAUTHORIZED,
+          );
+        }
+      }
+
+      this.chatRoomProudcerService.produce<IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat>>(this.chatKafkaTopic, this.chatMessageAggregate.updateSendStatusMessage(result as Chat), result['chatParticipate']['id']);
+      return this.httpResponse.StatusOK(result as Chat);
     } catch (error) {
-      this.logger.error(error.message, '', 'UpdateChatReadStatusError');
+      this.logger.error(error.message, '', 'UpdateChatSendStatusError');
       return new HttpException(
         {
           status: HttpStatus.INTERNAL_SERVER_ERROR,

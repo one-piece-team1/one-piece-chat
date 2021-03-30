@@ -1,4 +1,4 @@
-import { InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, InternalServerErrorException, Logger, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { ChatParticipate } from 'chatparticipates/chat-participant.entity';
 import { chain } from 'lodash';
 import { EntityManager, EntityRepository, getManager, Repository } from 'typeorm';
@@ -59,22 +59,22 @@ export class ChatRepository extends BaseRepository<Chat> {
    * @public
    * @param chatIdDto
    * @param updateChatReadStatusDto
-   * @returns {Promise<Chat>}
+   * @returns {Promise<Chat | number>}
    */
-  public async updateChatReadStatus(chatIdDto: ChatIdDto, updateChatReadStatusDto: UpdateChatReadStatusDto): Promise<Chat> {
+  public async updateChatReadStatus(chatIdDto: ChatIdDto, updateChatReadStatusDto: UpdateChatReadStatusDto): Promise<Chat | number> {
     const chat = await this.repoManager.getRepository(Chat).findOne({
       where: { id: chatIdDto.id },
       relations: ['chatParticipate'],
     });
     if (!chat) {
       this.logger.error(`Chat ${chatIdDto.id} not found`, '', 'UpdateChatReadStatusError');
-      throw new NotFoundException(`Chat ${chatIdDto.id} not found`);
+      return HttpStatus.NOT_FOUND;
     }
     if (chat.readStatus === 'read') return chat;
     const isValidated = this.validateRequestUser(chat.chatParticipate.users, updateChatReadStatusDto.requestUserId);
     if (!isValidated) {
       this.logger.error(`Invalid Request`, '', 'UpdateChatReadStatusError');
-      throw new UnauthorizedException('Invalid Request');
+      return HttpStatus.UNAUTHORIZED;
     }
     try {
       chat.readStatus = updateChatReadStatusDto.readStatus;
@@ -91,22 +91,22 @@ export class ChatRepository extends BaseRepository<Chat> {
    * @public
    * @param {ChatIdDto} chatIdDto
    * @param {UpdateChatSendStatusDto} updateChatSendStatusDto
-   * @returns
+   * @returns {Promise<Chat | number>}
    */
-  public async updateChatSendStatus(chatIdDto: ChatIdDto, updateChatSendStatusDto: UpdateChatSendStatusDto): Promise<Chat> {
+  public async updateChatSendStatus(chatIdDto: ChatIdDto, updateChatSendStatusDto: UpdateChatSendStatusDto): Promise<Chat | number> {
     const chat = await this.repoManager.getRepository(Chat).findOne({
       where: { id: chatIdDto.id },
       relations: ['chatParticipate'],
     });
     if (!chat) {
       this.logger.error(`Chat ${chatIdDto.id} not found`, '', 'UpdateChatSendStatusError');
-      throw new NotFoundException(`Chat ${chatIdDto.id} not found`);
+      return HttpStatus.NOT_FOUND;
     }
     if (chat.sendStatus === 'finish') return chat;
     const isValidated = this.validateRequestUser(chat.chatParticipate.users, updateChatSendStatusDto.requestUserId);
     if (!isValidated) {
       this.logger.error(`Invalid Request`, '', 'UpdateChatSendStatusError');
-      throw new UnauthorizedException('Invalid Request');
+      return HttpStatus.UNAUTHORIZED;
     }
     try {
       chat.sendStatus = updateChatSendStatusDto.sendStatus;

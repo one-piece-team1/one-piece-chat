@@ -39,16 +39,16 @@ export class ChatController {
    * @description Update chat message for read status and routes open only for admin, regular update use kafka event from client side
    * @admin
    * @put
-   * @transaction
    * @public
    * @param {IShare.UserInfo | IShare.JwtPayload} user
    * @param {ChatIdDto} chatIdDto
    * @param {UpdateChatReadStatusDto} updateChatReadStatusDto
+   * @returns {Promise<IShare.IResponseBase<Chat> | HttpException>}
    */
   @Put('/:id/reads')
   @SetMetadata('roles', [EShare.EUserRole.ADMIN])
   @UseGuards(AuthGuard(['jwt']), RoleGuard)
-  updateChatReadStatus(@CurrentUser() user: IShare.UserInfo | IShare.JwtPayload, @Param(ValidationPipe) chatIdDto: ChatIdDto, @Body(ValidationPipe) updateChatReadStatusDto: UpdateChatReadStatusDto) {
+  updateChatReadStatus(@CurrentUser() user: IShare.UserInfo | IShare.JwtPayload, @Param(ValidationPipe) chatIdDto: ChatIdDto, @Body(ValidationPipe) updateChatReadStatusDto: UpdateChatReadStatusDto): Promise<IShare.IResponseBase<Chat> | HttpException> {
     return this.chatService.updateChatReadStatus(user, chatIdDto, updateChatReadStatusDto);
   }
 
@@ -56,16 +56,16 @@ export class ChatController {
    * @description Update chat message for send status and routes open only for admin, regular update use kafka event from client side
    * @admin
    * @put
-   * @transaction
    * @public
    * @param {IShare.UserInfo | IShare.JwtPayload} user
    * @param {ChatIdDto} chatIdDto
    * @param {UpdateChatSendStatusDto} updateChatSendStatusDto
+   * @returns {Promise<IShare.IResponseBase<Chat> | HttpException>}
    */
   @Put('/:id/sends')
   @SetMetadata('roles', [EShare.EUserRole.ADMIN])
   @UseGuards(AuthGuard(['jwt']), RoleGuard)
-  updateChatSendStatus(@CurrentUser() user: IShare.UserInfo | IShare.JwtPayload, @Param(ValidationPipe) chatIdDto: ChatIdDto, @Body(ValidationPipe) updateChatSendStatusDto: UpdateChatSendStatusDto) {
+  updateChatSendStatus(@CurrentUser() user: IShare.UserInfo | IShare.JwtPayload, @Param(ValidationPipe) chatIdDto: ChatIdDto, @Body(ValidationPipe) updateChatSendStatusDto: UpdateChatSendStatusDto): Promise<IShare.IResponseBase<Chat> | HttpException> {
     return this.chatService.updateChatSendStatus(user, chatIdDto, updateChatSendStatusDto);
   }
 }
