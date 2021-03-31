@@ -1,4 +1,4 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, BeforeInsert, BeforeUpdate, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, OneToMany, OneToOne, PrimaryGeneratedColumn, Unique, UpdateDateColumn, VersionColumn } from 'typeorm';
 import { ChatRoom } from '../chatrooms/chat-room.entity';
 import { Chat } from '../chats/chat.entity';
 import { User } from '../users/user.entity';
@@ -39,6 +39,12 @@ export class ChatParticipate extends BaseEntity {
   )
   @JoinTable()
   users: User[];
+
+  /**
+   * @description Version control
+   */
+  @VersionColumn({ nullable: true })
+  version: number;
 
   /**
    * @description Time area

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Kafka from 'node-rdkafka';
+import { ChatEventHandler } from './chat-event.handler';
 import { config } from '../../config';
 
 @Injectable()
@@ -16,7 +17,7 @@ export class ChatEventConsumerService {
     },
   );
 
-  constructor() {
+  constructor(private readonly chatEventHandler: ChatEventHandler) {
     this.init();
   }
 
@@ -33,6 +34,7 @@ export class ChatEventConsumerService {
       })
       .on('data', (data) => {
         console.log(JSON.parse(data.value.toString()));
+        this.chatEventHandler.register(data);
         this.consumer.commit();
       })
       .on('event.error', (err) => {

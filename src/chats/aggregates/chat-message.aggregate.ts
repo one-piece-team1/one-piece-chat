@@ -17,4 +17,30 @@ export class ChatMessageAggregate {
       data: chat,
     });
   }
+
+  /**
+   * @description Update chat send status event
+   * @public
+   * @param {Chat} chat
+   * @returns {IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat>}
+   */
+  public updateSendStatusMessage(chat: Chat): IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat> {
+    return Object.freeze<IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat>>({
+      type: EChat.EChatRoomSocketEvent.UPDATESENDSTATUSMSG,
+      data: chat,
+    });
+  }
+
+  /**
+   * @description New chat read status event
+   * @public
+   * @param {Chat} chat
+   * @returns {IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat>}
+   */
+  public updateReadStatusMessage(chat: Chat): IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat> {
+    return Object.freeze<IChat.IAggregateResponse<EChat.EChatRoomSocketEvent, Chat>>({
+      type: EChat.EChatRoomSocketEvent.UPDATEREADSTATUSMSG,
+      data: chat,
+    });
+  }
 }
