@@ -22,7 +22,7 @@ export class ChatAuditSubscriber implements EntitySubscriberInterface<Chat> {
    * @public
    * @param {InsertEvent<Chat>} event
    */
-  afterInsert(event: InsertEvent<Chat>) {
+  public afterInsert(event: InsertEvent<Chat>) {
     this.insertCreateEvent(event.entity);
   }
 
@@ -33,7 +33,7 @@ export class ChatAuditSubscriber implements EntitySubscriberInterface<Chat> {
    * @public
    * @param {UpdateEvent<Chat>} event
    */
-  afterUpdate(event: UpdateEvent<Chat>) {
+  public afterUpdate(event: UpdateEvent<Chat>) {
     this.insertUpdateEvent(event);
   }
 
@@ -44,16 +44,16 @@ export class ChatAuditSubscriber implements EntitySubscriberInterface<Chat> {
    * @public
    * @param {RemoveEvent<Chat>} event
    */
-  afterRemove(event: RemoveEvent<Chat>) {
+  public afterRemove(event: RemoveEvent<Chat>) {
     this.insertDeleteEvent(event.entity);
   }
 
   /**
    * @description Insert create chat log
-   * @public
+   * @private
    * @param {Chat} event
    */
-  async insertCreateEvent(event: Chat) {
+  private async insertCreateEvent(event: Chat) {
     const chatAuditLog = new ChatAuditLog();
     chatAuditLog.version = event.version;
     chatAuditLog.chatId = event.id;
@@ -67,10 +67,10 @@ export class ChatAuditSubscriber implements EntitySubscriberInterface<Chat> {
 
   /**
    * @description Insert update chat log
-   * @public
+   * @private
    * @param {UpdateEvent<Chat>} event
    */
-  async insertUpdateEvent(event: UpdateEvent<Chat>) {
+  private async insertUpdateEvent(event: UpdateEvent<Chat>) {
     const chatAuditLog = new ChatAuditLog();
     chatAuditLog.version = event.entity.version;
     chatAuditLog.chatId = event.entity.id;
@@ -85,10 +85,10 @@ export class ChatAuditSubscriber implements EntitySubscriberInterface<Chat> {
 
   /**
    * @description Insert delete chat log
-   * @public
+   * @private
    * @param {Chat} event
    */
-  async insertDeleteEvent(event: Chat) {
+  private async insertDeleteEvent(event: Chat) {
     const chatAuditLog = new ChatAuditLog();
     chatAuditLog.version = event.version;
     chatAuditLog.chatId = event.id;

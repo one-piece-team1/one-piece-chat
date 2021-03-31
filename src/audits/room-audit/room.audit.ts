@@ -1,18 +1,18 @@
 import { InternalServerErrorException } from '@nestjs/common';
 import { EntitySubscriberInterface, EventSubscriber, InsertEvent, RemoveEvent, UpdateEvent } from 'typeorm';
-import { ChatParticipate } from '../../chatparticipates/chat-participant.entity';
-import { ParticipateAuditLog } from './participate.entity';
+import { ChatRoom } from '../../chatrooms/chat-room.entity';
+import { RoomAuditLog } from './room-audit.entity';
 import * as EAudit from '../enums';
 
 @EventSubscriber()
-export class ParticipateAuditSubscriber implements EntitySubscriberInterface<ChatParticipate> {
+export class RoomAuditSubscriber implements EntitySubscriberInterface<ChatRoom> {
   /**
-   * @description Listen to ChatParticipate entity changing
+   * @description Listen to chat room entity changing
    * @public
    * @returns {Chat}
    */
   public listenTo() {
-    return ChatParticipate;
+    return ChatRoom;
   }
 
   /**
@@ -20,9 +20,9 @@ export class ParticipateAuditSubscriber implements EntitySubscriberInterface<Cha
    * @event
    * @create
    * @public
-   * @param {InsertEvent<ChatParticipate>} event
+   * @param {InsertEvent<ChatRoom>} event
    */
-  public afterInsert(event: InsertEvent<ChatParticipate>) {
+  public afterInsert(event: InsertEvent<ChatRoom>) {
     this.insertCreateEvent(event.entity);
   }
 
@@ -31,9 +31,9 @@ export class ParticipateAuditSubscriber implements EntitySubscriberInterface<Cha
    * @event
    * @update
    * @public
-   * @param {UpdateEvent<ChatParticipate>} event
+   * @param {UpdateEvent<ChatRoom>} event
    */
-  public afterUpdate(event: UpdateEvent<ChatParticipate>) {
+  public afterUpdate(event: UpdateEvent<ChatRoom>) {
     this.insertUpdateEvent(event);
   }
 
@@ -42,21 +42,21 @@ export class ParticipateAuditSubscriber implements EntitySubscriberInterface<Cha
    * @event
    * @remove
    * @public
-   * @param {RemoveEvent<ChatParticipate>} event
+   * @param {RemoveEvent<ChatRoom>} event
    */
-  public afterRemove(event: RemoveEvent<ChatParticipate>) {
+  public afterRemove(event: RemoveEvent<ChatRoom>) {
     this.insertDeleteEvent(event.entity);
   }
 
   /**
-   * @description Insert create ChatParticipate log
+   * @description Insert create ChatRoom log
    * @private
-   * @param {ChatParticipate} event
+   * @param {ChatRoom} event
    */
-  private async insertCreateEvent(event: ChatParticipate) {
-    const auditLog = new ParticipateAuditLog();
+  private async insertCreateEvent(event: ChatRoom) {
+    const auditLog = new RoomAuditLog();
     auditLog.version = event.version;
-    auditLog.participateId = event.id;
+    auditLog.roomId = event.id;
     auditLog.type = EAudit.EAduitType.CREATE;
     try {
       await auditLog.save();
@@ -66,14 +66,14 @@ export class ParticipateAuditSubscriber implements EntitySubscriberInterface<Cha
   }
 
   /**
-   * @description Insert update ChatParticipate log
+   * @description Insert update ChatRoom log
    * @private
-   * @param {UpdateEvent<ChatParticipate>} event
+   * @param {UpdateEvent<ChatRoom>} event
    */
-  private async insertUpdateEvent(event: UpdateEvent<ChatParticipate>) {
-    const auditLog = new ParticipateAuditLog();
+  private async insertUpdateEvent(event: UpdateEvent<ChatRoom>) {
+    const auditLog = new RoomAuditLog();
     auditLog.version = event.entity.version;
-    auditLog.participateId = event.entity.id;
+    auditLog.roomId = event.entity.id;
     auditLog.type = EAudit.EAduitType.UPDATE;
     auditLog.updateAlias = event.updatedColumns.map((col) => col.databaseName).join(',');
     try {
@@ -84,14 +84,14 @@ export class ParticipateAuditSubscriber implements EntitySubscriberInterface<Cha
   }
 
   /**
-   * @description Insert delete ChatParticipate log
-   * @private
-   * @param {ChatParticipate} event
+   * @description Insert delete ChatRoom log
+   * @public
+   * @param {Chat} event
    */
-  private async insertDeleteEvent(event: ChatParticipate) {
-    const auditLog = new ParticipateAuditLog();
+  private async insertDeleteEvent(event: ChatRoom) {
+    const auditLog = new RoomAuditLog();
     auditLog.version = event.version;
-    auditLog.participateId = event.id;
+    auditLog.roomId = event.id;
     auditLog.type = EAudit.EAduitType.DELETE;
     try {
       await auditLog.save();

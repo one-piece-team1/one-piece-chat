@@ -2,7 +2,7 @@ import { BaseEntity, BeforeInsert, Column, CreateDateColumn, Entity, PrimaryGene
 import * as EAudit from '../enums';
 
 @Entity()
-export class ParticipateAuditLog extends BaseEntity {
+export class UserAuditLog extends BaseEntity {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
@@ -18,7 +18,7 @@ export class ParticipateAuditLog extends BaseEntity {
   version: number;
 
   @Column({ type: 'varchar', nullable: false })
-  participateId: string;
+  userId: string;
 
   @Column({ type: 'varchar', nullable: true })
   updateAlias?: string;
