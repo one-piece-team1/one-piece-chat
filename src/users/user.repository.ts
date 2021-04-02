@@ -76,14 +76,18 @@ export class UserRepository extends Repository<User> {
    * @event
    * @public
    * @param {UpdatePasswordEventDto} updatePasswordEventDto
-   * @returns {void}
+   * @returns {Promise<void>}
    */
-  public updateUserPassword(updatePasswordEventDto: UpdatePasswordEventDto): void {
+  public async updateUserPassword(updatePasswordEventDto: UpdatePasswordEventDto): Promise<void> {
     const { id, salt, password } = updatePasswordEventDto;
-    this.repoManager
-      .getRepository(User)
-      .update(id, { salt, password })
-      .catch((err) => this.logger.log(err.message, 'UpdateUserPassword'));
+    try {
+      const user = await this.repoManager.getRepository(User).findOne({ where: { id, status: true } });
+      user.salt = salt;
+      user.password = password;
+      await user.save();
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   /**
@@ -91,14 +95,20 @@ export class UserRepository extends Repository<User> {
    * @event
    * @public
    * @param {UpdateUserAdditionalInfoPublishDto} updateUserAdditionalInfoPublishDto
-   * @returns {void}
+   * @returns {Promise<void>}
    */
-  public updateUserAdditionalInfo(updateUserAdditionalInfoPublishDto: UpdateUserAdditionalInfoPublishDto) {
+  public async updateUserAdditionalInfo(updateUserAdditionalInfoPublishDto: UpdateUserAdditionalInfoPublishDto): Promise<void> {
     const { id, gender, age, desc, profileImage } = updateUserAdditionalInfoPublishDto;
-    this.repoManager
-      .getRepository(User)
-      .update(id, { gender, age, desc, profileImage })
-      .catch((err) => this.logger.log(err.message, 'UpdateUserAdditionalInfo'));
+    try {
+      const user = await this.repoManager.getRepository(User).findOne({ where: { id, status: true } });
+      if (gender) user.gender = gender;
+      if (age) user.age = age;
+      if (desc) user.desc = desc;
+      if (profileImage) user.profileImage = profileImage;
+      await user.save();
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
 
   /**
@@ -106,13 +116,16 @@ export class UserRepository extends Repository<User> {
    * @event
    * @public
    * @param {DeleteUserEventDto} deleteUserEventDto
-   * @returns {void}
+   * @returns {Promise<void>}
    */
-  public softDeleteUser(deleteUserEventDto: DeleteUserEventDto): void {
+  public async softDeleteUser(deleteUserEventDto: DeleteUserEventDto): Promise<void> {
     const { id } = deleteUserEventDto;
-    this.repoManager
-      .getRepository(User)
-      .update(id, { status: false })
-      .catch((err) => this.logger.log(err.message, 'SoftDeleteUser'));
+    try {
+      const user = await this.repoManager.getRepository(User).findOne({ where: { id, status: true } });
+      user.status = false;
+      await user.save();
+    } catch (error) {
+      throw new Error(error.message);
+    }
   }
 }

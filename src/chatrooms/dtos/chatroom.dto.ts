@@ -36,7 +36,7 @@ export class ChatSearchDto {
 
   @IsOptional()
   @IsString()
-  keyword: string;
+  keyword?: string;
 
   @IsOptional()
   sort?: 'ASC' | 'DESC';

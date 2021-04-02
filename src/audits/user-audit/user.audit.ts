@@ -5,7 +5,7 @@ import { UserAuditLog } from './user-audit.entity';
 import * as EAudit from '../enums';
 
 @EventSubscriber()
-export class RoomAuditSubscriber implements EntitySubscriberInterface<User> {
+export class UserAuditSubscriber implements EntitySubscriberInterface<User> {
   /**
    * @description Listen to user entity changing
    * @public
