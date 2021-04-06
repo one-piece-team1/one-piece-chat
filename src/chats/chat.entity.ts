@@ -1,4 +1,4 @@
-import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { BaseEntity, BeforeInsert, BeforeUpdate, Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn, VersionColumn } from 'typeorm';
 import { ChatParticipate } from '../chatparticipates/chat-participant.entity';
 import * as EChat from './enums';
 
@@ -31,6 +31,12 @@ export class Chat extends BaseEntity {
     (chatParticipate) => chatParticipate.chats,
   )
   chatParticipate: ChatParticipate;
+
+  /**
+   * @description Version control
+   */
+  @VersionColumn({ nullable: true })
+  version: number;
 
   /**
    * @description Time area

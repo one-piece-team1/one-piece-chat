@@ -25,4 +25,6 @@ export enum EChatRoomSocketEvent {
   'DELETEPARTICIPATE' = 'deleteparticipate',
   // message
   'NEWCHATMESSAGE' = 'newchatmessage',
+  'UPDATESENDSTATUSMSG' = 'updatesendstatusmsg',
+  'UPDATEREADSTATUSMSG' = 'updatereadstatusmsg',
 }
