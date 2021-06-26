@@ -1,4 +1,5 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConnectionOptions';
 import { config } from '../../config';
 
 export const ormConfig: TypeOrmModuleOptions = {
@@ -12,4 +13,18 @@ export const ormConfig: TypeOrmModuleOptions = {
   migrations: [__dirname + './migration/*.ts'],
   subscribers: [__dirname + '/../**/*.audit.{js,ts}'],
   synchronize: true,
+};
+
+export const eventStoreConfig: PostgresConnectionOptions = {
+  type: 'postgres',
+  host: config.EVENT_STORE_SETTINGS.dbHost,
+  port: config.EVENT_STORE_SETTINGS.dbPort,
+  username: config.EVENT_STORE_SETTINGS.username,
+  password: config.EVENT_STORE_SETTINGS.password,
+  database: config.EVENT_STORE_SETTINGS.database,
+  entities: [__dirname + '/../**/*.entity.{js,ts}'],
+  migrations: [__dirname + './migration/*.ts'],
+  subscribers: [__dirname + '/../**/*.audit.{js,ts}'],
+  synchronize: false,
+  logging: false,
 };
