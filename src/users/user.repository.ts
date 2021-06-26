@@ -14,10 +14,17 @@ export class UserRepository extends Repository<User> {
    * @event
    * @public
    * @param {User} userReq
-   * @returns {void}
+   * @returns {Promise<User>}
    */
-  public createUser(userReq: User): void {
-    this.repoManager.save(User, userReq).catch((err) => this.logger.log(err.message, 'CreatUser'));
+  public async createUser(userReq: User): Promise<User> {
+    try {
+      const user = new User();
+      Object.assign(user, userReq);
+      return await user.save();
+    } catch (error) {
+      this.logger.error(error.message, '', 'CreateUserError');
+      throw new Error(error.message);
+    }
   }
 
   /**
