@@ -83,15 +83,15 @@ export class UserRepository extends Repository<User> {
    * @event
    * @public
    * @param {UpdatePasswordEventDto} updatePasswordEventDto
-   * @returns {Promise<void>}
+   * @returns {Promise<User>}
    */
-  public async updateUserPassword(updatePasswordEventDto: UpdatePasswordEventDto): Promise<void> {
+  public async updateUserPassword(updatePasswordEventDto: UpdatePasswordEventDto): Promise<User> {
     const { id, salt, password } = updatePasswordEventDto;
     try {
       const user = await this.repoManager.getRepository(User).findOne({ where: { id, status: true } });
       user.salt = salt;
       user.password = password;
-      await user.save();
+      return await user.save();
     } catch (error) {
       throw new InternalServerErrorException(error.message);
     }
