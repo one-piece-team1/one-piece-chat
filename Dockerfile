@@ -20,7 +20,6 @@ RUN apk add --no-cache --virtual .gyp \
         make \
         g++ \
     && npm install \
-    && npm install request --save \
     && apk del .gyp
 
 COPY . .
